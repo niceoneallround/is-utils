@@ -1,0 +1,42 @@
+{
+  "name": "is-utils",
+  "version": "0.0.1",
+  "description": "contains utils used across is components and is clients",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test",
+    "build": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niceoneallround/is-utils.git"
+  },
+  "author": "rich@webshield.io",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/niceoneallround/is-utils/issues"
+  },
+  "homepage": "https://github.com/niceoneallround/is-utils#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-buddy.js": "^1.0.0",
+    "gulp-istanbul": "^1.0.0",
+    "gulp-jscs": "^4.0.0",
+    "gulp-jshint": "^2.0.1",
+    "gulp-mocha": "^3.0.1",
+    "gulp-nsp": "^2.4.2",
+    "jshint": "^2.9.2",
+    "jshint-stylish": "^2.2.0",
+    "nock": "^8.0.0",
+    "yargs": "^6.4.0"
+  },
+  "dependencies": {
+    "data-models": "git://github.com/niceoneallround/data-models.git",
+    "http-status": "^0.2.3",
+    "jwt-utils": "git://github.com/niceoneallround/jwt-utils.git",
+    "metadata": "git://github.com/niceoneallround/metadata.git",
+    "moment": "^2.16.0",
+    "node-utils": "git://github.com/niceoneallround/node-utils.git",
+    "uuid": "^3.0.0"
+  }
+}
