@@ -62,3 +62,21 @@ describe('3 Test Find Nodes of a specified type', function () {
     results.length.should.be.equal(2);
   }); // 3.1
 }); // describe 3
+
+describe('4 create JSON messages tests', function () {
+  'use strict';
+
+  it('4.1 should create a valid json message', function () {
+    let query = { '@id': '1', '@type': [PN_T.RSSubjectQuery], };
+    let subjectResults =  [
+      { '@id': '2', '@type': [BASE_T.Subject], },
+      { '@id': '3', '@type': [BASE_T.Subject], },
+      { '@id': '4', '@type': ['abc'], },
+    ];
+
+    let req = ApplyOutboundPPRequest.createJSON(query, subjectResults);
+    let invalid = ApplyOutboundPPRequest.validateJSON(req, 'fakehost.com');
+    assert(!invalid, util.format('should be valid:%j', invalid));
+    req['@graph'].length.should.be.equal(4);
+  }); // 4.1
+}); // describe 4

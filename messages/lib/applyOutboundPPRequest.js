@@ -33,6 +33,7 @@ and contains the subject results.
 
  */
 
+const assert = require('assert');
 const moment = require('moment');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils').npUtils;
 const PNDataModel = require('data-models/lib/PNDataModel');
@@ -41,8 +42,19 @@ const util = require('util');
 
 class ApplyOutboundPPRequest {
 
-  constructor(req) {
-    this.req = req;
+  // find the query node - not should check if more than one
+  static createJSON(query, subjectResults) {
+    assert(query, 'createJSON query param is missing');
+    assert(subjectResults, 'createJSON subjectResults param is missing');
+
+    let req = { '@graph': [], };
+    req['@graph'].push(query);
+
+    for (let i = 0; i < subjectResults.length; i++) {
+      req['@graph'].push(subjectResults[i]);
+    }
+
+    return req;
   }
 
   static validateJSON(rq, hostname) {
