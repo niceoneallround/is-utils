@@ -15,9 +15,11 @@ and contains the subject results.
      "@id": "the @id that was passed to the adapter as result of apply inbound",
      "@type": "http://pn.schema.webshield.io/type#RSSubjectQuery"
    }, {
-     "@id": "The @id from the subject restiction that was used to find the subject",
-     "@type": "https://.....Subject",
-     "https://schema.org/birthDate": "12/12/2012"
+     "@id": "subject specific @id that corrresponds to the sourceID",
+     "@type": "https://<specific subject type>/type#Subject",
+     "https://pn.schema.webshield.io/prop#job_id": < the @id of the query restriction node that found this subject>
+     "https://pn.schema.webshield.io/prop#sourceID":
+     <subject specific properties>
    }]
  }
 
