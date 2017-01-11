@@ -1,5 +1,6 @@
 /*jslint node: true, vars: true */
 
+const assert = require('assert');
 const localTestUtils = require('./testUtils').utils;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const rsQueryResult = require('../lib/rsQueryResult');
@@ -58,6 +59,14 @@ describe('1 Test Validate', function () {
   it('1.2 should return error if jwt is malformed', function () {
     let result = rsQueryResult.validateJWT(dummyServiceCtx, 'fake-jwt');
     result.should.have.property('error');
+  }); // 1.2
+
+  it('1.2 caon should be valid', function () {
+    let canon = rsQueryResult.createCanonJWT(dummyServiceCtx, {});
+    assert(canon, 'no canon returned');
+
+    let result = rsQueryResult.validateJWT(dummyServiceCtx, canon);
+    result.should.not.have.property('error');
   }); // 1.1
 
 }); // describe 1

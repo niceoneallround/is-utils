@@ -37,6 +37,7 @@ It OUTPUTs a stucture
       query: the query  }
 */
 
+const assert = require('assert');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils').npUtils;
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
@@ -44,6 +45,7 @@ const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
+const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
 const util = require('util');
 
 class RSQueryResult {
@@ -194,6 +196,60 @@ class RSQueryResult {
     }
 
     return result;
+  }
+
+  //
+  // Create a canon rsQueryResult JWT that can be used for testing
+  // props.respondingTo - optional
+  // props.syndicationId - optional
+  // props.pnDataModelId - optional
+  // props.privacyPipeId - optional
+  static createCanonJWT(serviceCtx, props) {
+    assert(serviceCtx, 'serviceCtx param is missing');
+
+    let respondingTo = 'id-1';
+    if ((props) && (props.respondingTo)) {
+      respondingTo = props.respondingTo;
+    }
+
+    let syndicationId = 'synd-id-1';
+    if ((props) && (props.syndicationId)) {
+      syndicationId = props.syndicationId;
+    }
+
+    let pnDataModelId = 'pnDataModelId-1';
+    if ((props) && (props.pnDataModelId)) {
+      pnDataModelId = props.pnDataModelId;
+    }
+
+    let privacyPipeId = 'ppId-1';
+    if ((props) && (props.privacyPipeId)) {
+      privacyPipeId = props.privacyPipeId;
+    }
+
+    let queryResult = {
+      '@id': 'fake-query-id',
+      '@type': [PN_T.RSSubjectQueryResult],
+      [PN_P.respondingTo]: respondingTo, };
+
+    let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    let aliceJWT = JWTUtils.signSubject(
+        alice, pnDataModelId, syndicationId, serviceCtx.config.crypto.jwt, { subject: alice['@id'], });
+
+    let bob = TestReferenceSourcePNDataModel.canons.createBob({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    let bobJWT = JWTUtils.signSubject(
+        alice, pnDataModelId, syndicationId, serviceCtx.config.crypto.jwt, { subject: bob['@id'], });
+
+    let rsQueryResultJWT = JWTUtils.signRSQueryResult(
+                              queryResult,
+                              [aliceJWT, bobJWT],
+                              [], // link JWTs
+                              privacyPipeId,
+                              serviceCtx.config.crypto.jwt,
+                              { subject: queryResult['@id'], }
+                            );
+
+    return rsQueryResultJWT;
   }
 
 } // class
