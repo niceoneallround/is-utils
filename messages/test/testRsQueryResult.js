@@ -57,7 +57,7 @@ describe('1 Test Validate', function () {
   }); // 1.1
 
   it('1.2 should return error if jwt is malformed', function () {
-    let result = rsQueryResult.validateJWT(dummyServiceCtx, 'fake-jwt');
+    let result = rsQueryResult.validateJWT(dummyServiceCtx, 'fake-jwt-SO_SHOULD_BE-AN_ERROR');
     result.should.have.property('error');
   }); // 1.2
 

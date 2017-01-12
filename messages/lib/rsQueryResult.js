@@ -2,11 +2,11 @@
 /*
 
  This message is sent from the Reference Source Privacy Agent to the Reference Source Proxy
- and contains the query results.
+ in response to a RS query and contains the query results.
 
- It is a JWT that contains the following claims
+ The RSQueryResult JWT contains the following claims
  - a pn jwt type claim of pn_t.rsQueryResult
- - a query claim - this the query result node
+ - a query claim - this the query result node that was passed in
  - a privacy pipe claim - this is the pipe used to send the data to the IS
  - a subject jwts claim - the subject results represented as an array of subject JWTs - one per returned subject
      - note transaction id is part of the subject record so know what transaction creates this subject
@@ -27,14 +27,6 @@ The validateJWT(serviceCtx, jwt) performs the following
   - verifyies all JWTs
   - verifies the query
   - creates the output structure
-
-It OUTPUTs a stucture
-
-    { badRequest: the jwt was somehow invalid so send a bad request to caller,
-      decoded: the decoded payload
-      subjects: an array of decoded payload subject JWTs
-      links: an array of decoded payload link JWTs
-      query: the query  }
 */
 
 const assert = require('assert');
@@ -50,6 +42,14 @@ const util = require('util');
 
 class RSQueryResult {
 
+  /* OUTPUTs a stucture
+
+      { error: the jwt was somehow invalid so send a bad request to caller,
+        decoded: the decoded payload
+        subjects: an array of decoded payload subject JWTs
+        links: an array of decoded payload link JWTs
+        query: the query  }
+  */
   static validateJWT(serviceCtx, inputJWT) {
 
     const loggingMD = {
