@@ -33,7 +33,6 @@ const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
-const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
 const util = require('util');
 
 class RSQuery {
@@ -54,6 +53,11 @@ class RSQuery {
       [PN_P.pnDataModel]: props.pnDataModelId,
       [PN_P.syndicatedEntity]: props.syndicatedEntities,
     };
+
+    // allow id to overrriden - used for testing
+    if (props.id) {
+      query['@id'] = props.id;
+    }
 
     return JWTUtils.signRSQuery(
             query,
@@ -214,21 +218,80 @@ class RSQuery {
       postBackURL = props.postBackURL;
     }
 
-    let query = {
-      '@id': 'fake-query-id',
-      '@type': [PN_T.RSSubjectQuery],
-      [PN_P.pnDataModel]: pnDataModelId,
-      [PN_P.syndicatedEntities]: [], };
-
-    let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: serviceCtx.config.DOMAIN_NAME, });
-    let bob = TestReferenceSourcePNDataModel.canons.createBob({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    // this subject data is tied to content encrypt key metadata
+    // https://md.pn.id.webshield.io/encrypt_key_md/io/webshield/test/dc#content-key-1
+    //
+    // Note the suject type is the base subject -  needs to be this to work with the canon privacy step instance
+    let subjects = [
+      {
+        '@id': 'https://id.webshield.io/io/webshield/test/subject#111',
+        '@type': [
+          'https://subject.pn.schema.webshield.io/type#Subject',
+          'http://pn.schema.webshield.io/type#PrivacyGraph',
+        ],
+        'https://schema.org/givenName': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+          '@value': 'BwY/p37oY1nhoFfO..y1oXJpIG52/tMiQJ9gM8lQ9YEQ==',
+        },
+        'https://schema.org/familyName': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+          '@value': 'E/jJ1i3xyFElWMeM..lphpi5id1rXwkbXOj5zvYapUD2sw1K4=',
+        },
+        'https://schema.org/taxID': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#invalid-so-will-not-decrypt',
+          '@value': 'E/jJ1i3xyFElWMeM..lphpi5id1rXwkbXOj5zvYapUD2sw1K4=',
+        },
+        'http://pn.schema.webshield.io/prop#sourceID': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+          '@value': 'sqOU8UjpmO/HCzS4..suxTN7CGGMXG82AD7pM0vxGZmQ==',
+        },
+        'https://schema.org/address': {
+          '@id': 'https://id.webshield.io/io/webshield/test/address#adr_1',
+          '@type': 'https://schema.org/PostalAddress',
+          'https://schema.org/postalCode': {
+            '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+            '@value': '66DRmDUnumKXJlxE..u2pceQfCCexJFXzruOhmuWPyPa0Q',
+          },
+        },
+      },
+      {
+        '@id': 'https://id.webshield.io/io/webshield/test/subject#222',
+        '@type': [
+          'https://subject.pn.schema.webshield.io/type#Subject',
+          'http://pn.schema.webshield.io/type#PrivacyGraph',
+        ],
+        'https://schema.org/givenName': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+          '@value': 'kMqyinSWZ5hOMqL9..KTNxgYEFhprKvuScZG7aGRgrxr5p',
+        },
+        'https://schema.org/familyName': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+          '@value': 'W3mfgDnGOtbva6WT..DPJK4Md0EzV/cQnvn72DdoITYiRZ',
+        },
+        'https://schema.org/taxID': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#invalid-so-will-not-decrypt',
+          '@value': 'E/jJ1i3xyFElWMeM..lphpi5id1rXwkbXOj5zvYapUD2sw1K4=',
+        },
+        'http://pn.schema.webshield.io/prop#sourceID': {
+          '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+          '@value': 'BVaHuCa/tS4CZTyR..cAwRnxvEM9IOAZewoZERHOoWUQ==',
+        },
+        'https://schema.org/address': {
+          '@id': 'https://id.webshield.io/io/webshield/test/address#adr_2',
+          '@type': 'https://schema.org/PostalAddress',
+          'https://schema.org/postalCode': {
+            '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+            '@value': 'JPmAsz6ibgbNE9mk..posJpbMs4vdScEyJ7JUfBvWYgzH7',
+          },
+        },
+      },
+    ];
 
     let createProps = {
-      query: query,
       postBackURL: postBackURL,
       pnDataModelId: pnDataModelId,
       privacyPipeId: privacyPipeId,
-      subjects: [alice, bob],
+      subjects: subjects,
       syndicatedEntities: [],
     };
 
