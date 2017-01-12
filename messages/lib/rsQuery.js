@@ -66,6 +66,15 @@ class RSQuery {
             serviceCtx.config.crypto.jwt, { subject: query['@id'], });
   }
 
+  // The message ack JWT just contains the @id
+  static createMessageAckJWT(serviceCtx, decoded) {
+    assert(serviceCtx, 'serviceCtx param is missing');
+    assert(decoded, 'query param is missing');
+
+    let queryId = decoded[JWTClaims.QUERY_CLAIM]['@id'];
+    return JWTUtils.signMessageAck(queryId, serviceCtx.config.crypto.jwt);
+  }
+
   /* OUTPUTs a stucture
 
       { error: the jwt was somehow invalid so send a bad request to caller,

@@ -1,6 +1,8 @@
 /*jslint node: true, vars: true */
 
 const assert = require('assert');
+const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
+const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const localTestUtils = require('./testUtils').utils;
 const RSQuery = require('../lib/rsQuery');
 const testUtils = require('node-utils/testing-utils/lib/utils');
@@ -52,6 +54,15 @@ describe('1 Test Create', function () {
     let canonJWT = RSQuery.createCanonJWT(dummyServiceCtx, {});
     let valid = RSQuery.validateJWT(dummyServiceCtx, canonJWT);
     assert(!valid.error, util.format('Query should be valid:%j', valid.error));
+  }); // 1.2
+
+  it('1.3 validate message ack JWT', function () {
+
+    let canonJWT = RSQuery.createCanonJWT(dummyServiceCtx, {});
+    let valid = RSQuery.validateJWT(dummyServiceCtx, canonJWT);
+    let messageAck = RSQuery.createMessageAckJWT(dummyServiceCtx, valid.decoded);
+    let decoded = JWTUtils.decode(messageAck);
+    decoded.should.have.property(JWTClaims.MESSAGE_ACK_ID_CLAIM, valid.decoded[JWTClaims.QUERY_CLAIM]['@id']);
   }); // 1.2
 
 }); // describe 1
