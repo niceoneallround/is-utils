@@ -33,6 +33,7 @@ const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
+const PNSyndicatedEntity = require('data-models/lib/PNSyndicatedEntity');
 const util = require('util');
 
 class RSQuery {
@@ -203,6 +204,8 @@ class RSQuery {
   static createCanonJWT(serviceCtx, props) {
     assert(serviceCtx, 'serviceCtx param is missing');
 
+    const hostname = serviceCtx.config.getHostname();
+
     let pnDataModelId = 'pnDataModelId-1';
     if ((props) && (props.pnDataModelId)) {
       pnDataModelId = props.pnDataModelId;
@@ -287,12 +290,19 @@ class RSQuery {
       },
     ];
 
+    let syndEnts = [
+      PNSyndicatedEntity.create('test-se-1',
+        { hostname: hostname, jobId: 'fake-test-job-1', pnDataModelId: pnDataModelId, }),
+      PNSyndicatedEntity.create('test-se-2',
+        { hostname: hostname, jobId: 'fake-test-job-2', pnDataModelId: pnDataModelId, }),
+    ];
+
     let createProps = {
       postBackURL: postBackURL,
       pnDataModelId: pnDataModelId,
       privacyPipeId: privacyPipeId,
       subjects: subjects,
-      syndicatedEntities: [],
+      syndicatedEntities: syndEnts,
     };
 
     return RSQuery.createJWT(serviceCtx, createProps);
