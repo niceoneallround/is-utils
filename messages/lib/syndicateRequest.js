@@ -1,29 +1,29 @@
 /*
 
-This message is a JWT sent from the Reference Source Proxy to the Reference Source Privacy Agent
-via the Reference Source Adapter.
+This message is a JWT sent from the Ingest Privacy Agent to the Identity Syndicate.
 
-It asks the reference source to query for the passed in subjects with the output
-being subject link credential, and a reference source subject containing any identity
-properties and any enrichment properties. The result is sent back asynchronously using
-and obfuscate privacy pipe.
+It asks the Identity Syndicate to save the subject JWTs to the obfuscated data lake
+and for each subject starts a subject enrichment and linking job.
+
+The response is sent once the message is verified, not processed, and is either
+a signed ack or a signed error.
+
+The caller users the IS query jobs interface using there passed in tag to find the reevant jobs
 
 The RS Query JWT contains the following claims
-- a PN_JWT_TYPE_CLAM  of pn_t.rsQuery
-- a QUERY_CLAIM - contains a pn_t.RSQuery jsonld node as described below
+- a PN_JWT_TYPE_CLAM  of pn_t.syndicate_request
+- a SYNDICATE_REQUEST_CLAIM - contains a PN_T.SubjectSyndicationRequest jsonld node as described below
 - a PRIVACY_PIPE_CLAIM - this is the pipe used to send the data to the reference source - a deobfuscate pipe
-- a SUBJECT_CLAIM - an array of all the subjects jsonld nodes needed by the syndicated entity.
+- a SUBJECT_JWTS_CLAIM - an array of all the subjects JWTs containing the subject jsonld nodes needed by the syndicated entity.
   - These are privacy graphs in source data model format, with obfuscated data.
 
-The pn_t.rsQuery node has the following properties
-- @id
-- @type
-- pn_p.post_back_URL - where to post the query results
-- pn_p.pn_data_model - the @id of the data model used to create the syndicated entities
-- pn_p.syndicated_entities: the array of syndicated entities that should be queried for.
+A PN_T.SubjectSyndicationRequest has the following properties
+- @id: the globally unique id
+- @type: PN_T.SubjectSyndicationRequest
+- pn_p.user_tag: a tag that can be used by the issuer to look for the results
+- pn_p.identity_syndication_algorithm: the @id of the syndication algorithm to use
 
 */
-
 const assert = require('assert');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils').npUtils;
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
@@ -33,37 +33,44 @@ const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
-const PNSyndicatedEntity = require('data-models/lib/PNSyndicatedEntity');
 const util = require('util');
 
-class RSQuery {
+class SyndicateRequest {
 
   static createJWT(serviceCtx, props) {
     assert(serviceCtx, 'serviceCtx param is missing');
     assert(props, 'props param is missing');
-    assert(props.pnDataModelId, util.format('props.pnDataModelId param is missing:%j', props));
-    assert(props.postBackURL, util.format('props.postBackURL param is missing:%j', props));
+    assert(props.userTag, util.format('props.userTag param is missing:%j', props));
+    assert(props.isa, util.format('props.isa param is missing:%j', props));
     assert(props.privacyPipeId, util.format('props.privacyPipeId param is missing:%j', props));
-    assert(props.subjects, util.format('props.subjects param is missing:%j', props));
-    assert(props.syndicatedEntities, util.format('props.syndicatedEntities param is missing:%j', props));
+    assert(props.subjectJWTs, util.format('props.subjectJWTs param is missing:%j', props));
 
-    let query = {
-      '@id': PNDataModel.ids.createQueryId(serviceCtx.config.DOMAIN_NAME, moment().unix()),
-      '@type': [PN_T.RSSubjectQuery],
-      [PN_P.postBackUrl]: props.postBackURL,
-      [PN_P.pnDataModel]: props.pnDataModelId,
-      [PN_P.syndicatedEntity]: props.syndicatedEntities,
+    const loggingMD = {
+            ServiceType: serviceCtx.serviceName,
+            FileName: 'isUtils/rsQueryResult.js', };
+
+    let syndRequest = {
+      '@id': PNDataModel.ids.createSyndicationRequestId(serviceCtx.config.DOMAIN_NAME, moment().unix()),
+      '@type': [PN_T.SubjectSyndicationRequest],
+      [PN_P.userTag]: props.userTag,
+      [PN_P.identitySyndicationAlgorithm]: props.isa,
     };
 
-    // allow id to overrriden - used for testing
+    // allow id to overrriden
     if (props.id) {
-      query['@id'] = props.id;
+      syndRequest['@id'] = props.id;
     }
 
-    return JWTUtils.signRSQuery(
-            query,
-            props.subjects, props.privacyPipeId,
-            serviceCtx.config.crypto.jwt, { subject: query['@id'], });
+    serviceCtx.logger.logJSON('info', { serviceType: serviceCtx.name,
+                                        action: 'Create-Syndicate-Request-JWT',
+                                        data: syndRequest, }, loggingMD);
+
+    return JWTUtils.signSyndicateRequest(
+                    syndRequest,
+                    props.subjectJWTs,
+                    props.privacyPipeId,
+                    serviceCtx.config.crypto.jwt, { subject: syndRequest['@id'], });
+
   }
 
   // The message ack JWT just contains the @id
@@ -71,15 +78,15 @@ class RSQuery {
     assert(serviceCtx, 'serviceCtx param is missing');
     assert(decoded, 'query param is missing');
 
-    let queryId = decoded[JWTClaims.QUERY_CLAIM]['@id'];
+    let queryId = decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM]['@id'];
     return JWTUtils.signMessageAck(queryId, serviceCtx.config.crypto.jwt);
   }
 
   /* OUTPUTs a stucture
 
       { error: the jwt was somehow invalid so send a bad request to caller,
-        query: the query claim
-        subjects: the subject claim
+        syndicateRequest: the syndicat request claim
+        subjectJWTsDecoded: the decoded subjectJWTs payloads
         privacyPipe: the privacy pipe claim,
         decoded: the decoded JWT}
   */
@@ -87,7 +94,7 @@ class RSQuery {
 
     const loggingMD = {
             ServiceType: serviceCtx.serviceName,
-            FileName: 'isUtils/rsQueryResult.js', };
+            FileName: 'isUtils/syndicateRequest.js', };
 
     const hostname = serviceCtx.config.getHostname();
 
@@ -99,10 +106,10 @@ class RSQuery {
       } catch (err) {
         result.error = PNDataModel.errors.createInvalidJWTError({
                   id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-                  type: PN_T.RSSubjectQueryResult, jwtError: err, });
+                  type: PN_T.SubjectSyndicationRequest, jwtError: err, });
 
         serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
-                                    action: 'RsQuery-Result-ERROR-JWT-VERIFY',
+                                    action: 'SyndicateRequest-ERROR-JWT-VERIFY',
                                     inputJWT: inputJWT,
                                     error: result.error,
                                     decoded: JWTUtils.decode(inputJWT, { complete: true }),
@@ -125,28 +132,28 @@ class RSQuery {
       return result;
     }
 
-    if (result.decoded[JWTClaims.PN_JWT_TYPE_CLAIM] !== JWTType.rsQuery) {
+    if (result.decoded[JWTClaims.PN_JWT_TYPE_CLAIM] !== JWTType.syndicateRequest) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR JWT not expected type::%s JWT:%j', JWTType.rsQuery, result.decoded),
+        errMsg: util.format('ERROR JWT not expected type::%s JWT:%j', JWTType.syndicateRequest, result.decoded),
       });
 
       return result;
     }
 
-    if (!result.decoded[JWTClaims.QUERY_CLAIM]) {
+    if (!result.decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM]) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.QUERY_CLAIM, result.decoded),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SYNDICATE_REQUEST_CLAIM, result.decoded),
       });
 
       return result;
     }
 
-    if (!result.decoded[JWTClaims.SUBJECT_CLAIM]) {
+    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_CLAIM, result.decoded),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_JWTS_CLAIM, result.decoded),
       });
 
       return result;
@@ -163,39 +170,30 @@ class RSQuery {
 
     //
     // validate the query
-    result.query = result.decoded[JWTClaims.QUERY_CLAIM];
-    console.log(result.query);
-    if (!((JSONLDUtils.isType(result.query, PN_T.RSSubjectQuery)))) {
+    result.syndicateRequest = result.decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM];
+    console.log(result.syndicateRequest);
+    if (!((JSONLDUtils.isType(result.syndicateRequest, PN_T.SubjectSyndicationRequest)))) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR type is not [%s] missing in:%j', PN_T.RSSubjectQuery, result.query),
+        errMsg: util.format('ERROR type is not [%s] missing in:%j', PN_T.RSSubjectQuery, result.syndicateRequest),
       });
 
       return result;
     }
 
-    if (!result.query[PN_P.postBackUrl]) {
+    if (!result.syndicateRequest[PN_P.userTag]) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR property [%s] missing in:%j', PN_P.postBackUrl, result.query),
+        errMsg: util.format('ERROR property [%s] missing in:%j', PN_P.userTag, result.syndicateRequest),
       });
 
       return result;
     }
 
-    if (!result.query[PN_P.syndicatedEntity]) {
+    if (!result.syndicateRequest[PN_P.identitySyndicationAlgorithm]) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR property [%s] missing in:%j', PN_P.syndicatedEntity, result.query),
-      });
-
-      return result;
-    }
-
-    if (!result.query[PN_P.pnDataModel]) {
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR property [%s] missing in:%j', PN_P.pnDataModel, result.query),
+        errMsg: util.format('ERROR property [%s] missing in:%j', PN_P.identitySyndicationAlgorithm, result.syndicateRequest),
       });
 
       return result;
@@ -205,19 +203,17 @@ class RSQuery {
   }
 
   //
-  // Create a canon rsQueryResult JWT that can be used for testing
-  // props.respondingTo - optional
-  // props.syndicationId - optional
-  // props.pnDataModelId - optional
+  // Create a canon syndicate rqeuest JWT that can be used for testing
+  // props.userTag - optional
+  // props.isa - optional
   // props.privacyPipeId - optional
+  // props.pnDataModelId - optional - stamped in the subject JWTs
   static createCanonJWT(serviceCtx, props) {
     assert(serviceCtx, 'serviceCtx param is missing');
 
-    const hostname = serviceCtx.config.getHostname();
-
-    let pnDataModelId = 'pnDataModelId-1';
-    if ((props) && (props.pnDataModelId)) {
-      pnDataModelId = props.pnDataModelId;
+    let isa = 'isaId-1';
+    if ((props) && (props.isa)) {
+      isa = props.isa;
     }
 
     let privacyPipeId = 'ppId-1';
@@ -225,10 +221,17 @@ class RSQuery {
       privacyPipeId = props.privacyPipeId;
     }
 
-    let postBackURL = 'http://fake';
-    if ((props) && (props.postBackURL)) {
-      postBackURL = props.postBackURL;
+    let userTag = 'fake-user-tag';
+    if ((props) && (props.userTag)) {
+      userTag = props.userTag;
     }
+
+    let pnDataModelId = 'pnDataModelId-1';
+    if ((props) && (props.pnDataModelId)) {
+      pnDataModelId = props.pnDataModelId;
+    }
+
+    let syndicationId = PNDataModel.ids.createSyndicationRequestId(serviceCtx.config.DOMAIN_NAME, moment().unix());
 
     // this subject data is tied to content encrypt key metadata
     // https://md.pn.id.webshield.io/encrypt_key_md/io/webshield/test/dc#content-key-1
@@ -299,22 +302,26 @@ class RSQuery {
       },
     ];
 
-    let syndEnts = [
-      PNSyndicatedEntity.create('test-se-1',
-        { hostname: hostname, jobId: 'fake-test-job-1', pnDataModelId: pnDataModelId, }),
-      PNSyndicatedEntity.create('test-se-2',
-        { hostname: hostname, jobId: 'fake-test-job-2', pnDataModelId: pnDataModelId, }),
-    ];
+    let subjectJWTs = [];
+    for (let i = 0; i < subjects; i++) {
+      subjectJWTs.push(JWTUtils.signSubject(
+                      subjects[i],
+                      pnDataModelId,
+                      syndicationId,
+                      serviceCtx.config.crypto.jwt,
+                      { subject: subjects[i]['@id'], })
+                    );
+    }
 
     let createProps = {
-      postBackURL: postBackURL,
-      pnDataModelId: pnDataModelId,
+      userTag: userTag,
+      isa: isa,
       privacyPipeId: privacyPipeId,
-      subjects: subjects,
-      syndicatedEntities: syndEnts,
+      subjectJWTs: subjectJWTs,
+      id: syndicationId,
     };
 
-    return RSQuery.createJWT(serviceCtx, createProps);
+    return SyndicateRequest.createJWT(serviceCtx, createProps);
 
   }
 
@@ -326,4 +333,4 @@ class RSQuery {
 // const rsQueryResult = require('..../rsQueryResult');
 // result = rsQueryResult.validateJWT()
 //
-module.exports = RSQuery;
+module.exports = SyndicateRequest;
