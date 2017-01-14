@@ -1,7 +1,7 @@
 /*jslint node: true, vars: true */
 
 const assert = require('assert');
-const ApplyOutboundPPRequest = require('../lib/applyOutboundPPRequest');
+const ApplyOutboundPPRequest = require('../lib/ApplyOutboundPPRequest');
 const BaseSubjectPNDataModel = require('data-models/lib/BaseSubjectPNDataModel');
 const BASE_T = BaseSubjectPNDataModel.TYPE;
 const PNDataModel = require('data-models/lib/PNDataModel');
