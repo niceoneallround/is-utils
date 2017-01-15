@@ -212,13 +212,10 @@ class SyndicateRequest {
       let subjectJWTsDecoded = [];
       let subjectJWTs = result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM];
       for (let i = 0; i < subjectJWTs.length; i++) {
+        let subject;
         if (serviceCtx.config.VERIFY_JWT) {
           try {
-            subjectJWTsDecoded.push(
-                    JWTUtils.newVerify(
-                      subjectJWTs[i],
-                      serviceCtx.config.crypto.jwt)
-            );
+            subject = JWTUtils.newVerify(subjectJWTs[i], serviceCtx.config.crypto.jwt);
           } catch (err) {
             result.error = PNDataModel.errors.createInvalidJWTError({
                       id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
@@ -234,8 +231,40 @@ class SyndicateRequest {
             return result;
           }
         } else {
-          subjectJWTsDecoded.push(JWTUtils.decode(subjectJWTs[i]));
+          subject = JWTUtils.decode(subjectJWTs[i]);
         }
+
+        // validate the subject
+
+        if (!subject[JWTClaims.SUBJECT_CLAIM]) {
+          result.error = PNDataModel.errors.createTypeError({
+            id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+            errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_CLAIM, subject),
+          });
+
+          return result;
+        }
+
+        if (!subject[JWTClaims.PN_DATA_MODEL_CLAIM]) {
+          result.error = PNDataModel.errors.createTypeError({
+            id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+            errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.PN_DATA_MODEL_CLAIM, subject),
+          });
+
+          return result;
+        }
+
+        if (!subject[JWTClaims.SUBJECT_SYNDICATION_ID_CLAIM]) {
+          result.error = PNDataModel.errors.createTypeError({
+            id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+            errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_SYNDICATION_ID_CLAIM, subject),
+          });
+
+          return result;
+        }
+
+        // add to the set
+        subjectJWTsDecoded.push(subject);
       }
 
       result.subjectJWTsDecoded = subjectJWTsDecoded;
