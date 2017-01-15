@@ -10,7 +10,7 @@ a signed ack or a signed error.
 
 The caller users the IS query jobs interface using there passed in tag to find the reevant jobs
 
-The RS Query JWT contains the following claims
+The RS Query JWT REQUEST payload contains the following claims
 - a PN_JWT_TYPE_CLAM  of pn_t.syndicate_request
 - a SYNDICATE_REQUEST_CLAIM - contains a PN_T.SubjectSyndicationRequest jsonld node as described below
 - a PRIVACY_PIPE_CLAIM - this is the pipe used to send the data to the reference source - a deobfuscate pipe
@@ -22,6 +22,11 @@ A PN_T.SubjectSyndicationRequest has the following properties
 - @type: PN_T.SubjectSyndicationRequest
 - pn_p.user_tag: a tag that can be used by the issuer to look for the results
 - pn_p.identity_syndication_algorithm: the @id of the syndication algorithm to use
+
+
+The RESPONSE JWT payload contains the following claims
+- PN_JWT_TYPE_CLAM - contains https://pn.schema.webshield.io/type#message_ack
+- MESSAGE_ACK_ID_CLAIM - contains just the @id of the syndicate request
 
 */
 const assert = require('assert');
@@ -78,8 +83,8 @@ class SyndicateRequest {
     assert(serviceCtx, 'serviceCtx param is missing');
     assert(decoded, 'query param is missing');
 
-    let queryId = decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM]['@id'];
-    return JWTUtils.signMessageAck(queryId, serviceCtx.config.crypto.jwt);
+    let messageId = decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM]['@id'];
+    return JWTUtils.signMessageAck(messageId, serviceCtx.config.crypto.jwt);
   }
 
   /* OUTPUTs a stucture
