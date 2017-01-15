@@ -92,7 +92,7 @@ class SyndicateRequest {
       { error: the jwt was somehow invalid so send a bad request to caller,
         syndicateRequest: the syndicat request claim
         subjectJWTsDecoded: the decoded subjectJWTs payloads
-        privacyPipe: the privacy pipe claim,
+        privacyPipeId: the privacy pipe claim,
         decoded: the decoded JWT}
   */
   static validateJWT(serviceCtx, inputJWT) {
@@ -155,26 +155,8 @@ class SyndicateRequest {
       return result;
     }
 
-    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) {
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_JWTS_CLAIM, result.decoded),
-      });
-
-      return result;
-    }
-
-    if (!result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM]) {
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.PRIVACY_PIPE_CLAIM, result.decoded),
-      });
-
-      return result;
-    }
-
     //
-    // validate the query
+    // validate the syndicate request
     result.syndicateRequest = result.decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM];
     console.log(result.syndicateRequest);
     if (!((JSONLDUtils.isType(result.syndicateRequest, PN_T.SubjectSyndicationRequest)))) {
@@ -204,6 +186,61 @@ class SyndicateRequest {
       return result;
     }
 
+    // validate privacy pipe claim
+    if (!result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM]) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.PRIVACY_PIPE_CLAIM, result.decoded),
+      });
+
+      return result;
+    } else {
+      result.privacyPipeId = result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM];
+    }
+
+    // validate subjects claim
+    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_JWTS_CLAIM, result.decoded),
+      });
+
+      return result;
+    } else {
+      // iterate over and veify and decode
+
+      let subjectJWTsDecoded = [];
+      let subjectJWTs = result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM];
+      for (let i = 0; i < subjectJWTs.length; i++) {
+        if (serviceCtx.config.VERIFY_JWT) {
+          try {
+            subjectJWTsDecoded.push(
+                    JWTUtils.newVerify(
+                      subjectJWTs[i],
+                      serviceCtx.config.crypto.jwt)
+            );
+          } catch (err) {
+            result.error = PNDataModel.errors.createInvalidJWTError({
+                      id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+                      type: PN_T.SubjectSyndicationRequest, jwtError: err, });
+
+            serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
+                                        action: 'SyndicateRequest-ERROR-SUBJECT_JWT-VERIFY',
+                                        syndRequest: result.decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM],
+                                        error: result.error,
+                                        decoded: JWTUtils.decode(subjectJWTs[i], { complete: true }),
+                                        jwtError: err, }, loggingMD);
+
+            return result;
+          }
+        } else {
+          subjectJWTsDecoded.push(JWTUtils.decode(subjectJWTs[i]));
+        }
+      }
+
+      result.subjectJWTsDecoded = subjectJWTsDecoded;
+    }
+
     return result;
   }
 
@@ -221,17 +258,17 @@ class SyndicateRequest {
       isa = props.isa;
     }
 
-    let privacyPipeId = 'ppId-1';
+    let privacyPipeId = 'canon-default-ppId-1';
     if ((props) && (props.privacyPipeId)) {
       privacyPipeId = props.privacyPipeId;
     }
 
-    let userTag = 'fake-user-tag';
+    let userTag = 'canon-default-user-tag';
     if ((props) && (props.userTag)) {
       userTag = props.userTag;
     }
 
-    let pnDataModelId = 'pnDataModelId-1';
+    let pnDataModelId = 'canon-default-pnDataModelId-1';
     if ((props) && (props.pnDataModelId)) {
       pnDataModelId = props.pnDataModelId;
     }
@@ -308,7 +345,7 @@ class SyndicateRequest {
     ];
 
     let subjectJWTs = [];
-    for (let i = 0; i < subjects; i++) {
+    for (let i = 0; i < subjects.length; i++) {
       subjectJWTs.push(JWTUtils.signSubject(
                       subjects[i],
                       pnDataModelId,

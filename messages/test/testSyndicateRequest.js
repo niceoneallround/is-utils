@@ -40,12 +40,22 @@ describe('1 Test Sydicante Request', function () {
     let syndicateRequestJWT = SyndicateRequest.createJWT(dummyServiceCtx, createProps);
     let valid = SyndicateRequest.validateJWT(dummyServiceCtx, syndicateRequestJWT);
     assert(!valid.error, util.format('should be valid:%j', valid.error));
+    valid.should.have.property('decoded');
+    valid.should.have.property('syndicateRequest');
+    valid.should.have.property('privacyPipeId');
+    valid.should.have.property('subjectJWTsDecoded');
+    valid.subjectJWTsDecoded.length.should.be.equal(0);
   }); // 1.1
 
   it('1.2 validate canon JWT', function () {
     let canonJWT = SyndicateRequest.createCanonJWT(dummyServiceCtx, {});
     let valid = SyndicateRequest.validateJWT(dummyServiceCtx, canonJWT);
     assert(!valid.error, util.format('should be valid:%j', valid.error));
+    valid.should.have.property('decoded');
+    valid.should.have.property('syndicateRequest');
+    valid.should.have.property('privacyPipeId');
+    valid.should.have.property('subjectJWTsDecoded');
+    valid.subjectJWTsDecoded.length.should.be.equal(2);
   }); // 1.2
 
   it('1.3 validate message ack JWT', function () {
