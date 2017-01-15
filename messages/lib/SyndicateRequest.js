@@ -52,7 +52,7 @@ class SyndicateRequest {
 
     const loggingMD = {
             ServiceType: serviceCtx.serviceName,
-            FileName: 'isUtils/rsQueryResult.js', };
+            FileName: 'isUtils/SyndicateRequest.js', };
 
     let syndRequest = {
       '@id': PNDataModel.ids.createSyndicationRequestId(serviceCtx.config.DOMAIN_NAME, moment().unix()),
