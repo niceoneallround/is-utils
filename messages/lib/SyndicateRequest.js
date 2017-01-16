@@ -282,7 +282,7 @@ class SyndicateRequest {
   static createCanonJWT(serviceCtx, props) {
     assert(serviceCtx, 'serviceCtx param is missing');
 
-    let isa = 'isaId-1';
+    let isa = 'https://md.pn.id.webshield.io/resource/io/webshield/test#23'; // add a valid format @id
     if ((props) && (props.isa)) {
       isa = props.isa;
     }
