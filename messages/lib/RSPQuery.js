@@ -16,6 +16,7 @@ The Query has the following properties
   qry[PN_P.referenceSource] = the reference source JSON-LD node to send query to - not @id but object
   qry[PN_P.privacyContext] = props.privacyContext;
     - PN_P.subjectPrivacyPipe = the privacy pipe used to load the subjects - do not think need this
+    - PN_P.privacyActionInstance2Deobfuscate - the PAI to see if can de-obfuscate
   qry[PN_P.subject] = Array of subjects to send
   qry[PN_P.version] = 'v2'
   qry[PN_P.syndicatedEntity] = Array of syndicated entities to send that are built from subject data
@@ -112,6 +113,13 @@ class RSPQuery {
 
     qry[PN_P.privacyContext] = PrivacyPNDataModelUtils.createPrivacyContext({ hostname: 'fake.hostname' });
     qry[PN_P.privacyContext][PN_P.subjectPrivacyPipe] = privacyPipeId;
+
+    //
+    // This is the PAI from the subject data
+    //
+    qry[PN_P.privacyContext][PN_P.privacyActionInstance2Deobfuscate] = [
+      'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
+    ];
 
     qry[PN_P.syndicatedEntity] = [
       PNSyndicatedEntity.create('canon-se-id-1',
