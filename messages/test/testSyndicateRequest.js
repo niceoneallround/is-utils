@@ -56,6 +56,11 @@ describe('1 Test Sydicante Request', function () {
     valid.should.have.property('privacyPipeId');
     valid.should.have.property('subjectJWTsDecoded');
     valid.subjectJWTsDecoded.length.should.be.equal(2);
+
+    // make sure decoded subjects are for different subjects
+    valid.subjectJWTsDecoded[0][JWTClaims.SUBJECT_CLAIM]['@id'].should.not.be.equal(
+          valid.subjectJWTsDecoded[1][JWTClaims.SUBJECT_CLAIM]['@id']);
+
   }); // 1.2
 
   it('1.3 validate message ack JWT', function () {
