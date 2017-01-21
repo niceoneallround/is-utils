@@ -54,7 +54,7 @@ class RSQueryResult {
 
     const loggingMD = {
             ServiceType: serviceCtx.serviceName,
-            FileName: 'isUtils/rsQueryResult.js', };
+            FileName: 'isUtils/messages/rsQueryResult.js', };
 
     const hostname = serviceCtx.config.getHostname();
 
@@ -196,6 +196,15 @@ class RSQueryResult {
     }
 
     return result;
+  }
+
+  // The message ack JWT just contains the @id of the query in a QUERY_CLAIM
+  static createMessageAckJWT(serviceCtx, decoded) {
+    assert(serviceCtx, 'serviceCtx param is missing');
+    assert(decoded, 'decoded param is missing');
+
+    let messageId = decoded[JWTClaims.QUERY_CLAIM]['@id'];
+    return JWTUtils.signMessageAck(messageId, serviceCtx.config.crypto.jwt);
   }
 
   //

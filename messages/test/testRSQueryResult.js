@@ -2,6 +2,7 @@
 
 const assert = require('assert');
 const localTestUtils = require('./testUtils').utils;
+const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const rsQueryResult = require('../lib/RSQueryResult');
 const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
@@ -61,12 +62,21 @@ describe('1 Test Validate', function () {
     result.should.have.property('error');
   }); // 1.2
 
-  it('1.2 caon should be valid', function () {
+  it('1.3 canon should be valid', function () {
     let canon = rsQueryResult.createCanonJWT(dummyServiceCtx, {});
     assert(canon, 'no canon returned');
 
     let result = rsQueryResult.validateJWT(dummyServiceCtx, canon);
     result.should.not.have.property('error');
-  }); // 1.1
+  }); // 1.3
+
+  it('1.4 validate message ack JWT', function () {
+
+    let canonJWT = rsQueryResult.createCanonJWT(dummyServiceCtx, {});
+    let valid = rsQueryResult.validateJWT(dummyServiceCtx, canonJWT);
+    let messageAck = rsQueryResult.createMessageAckJWT(dummyServiceCtx, valid.decoded);
+    let decoded = JWTUtils.decode(messageAck);
+    decoded.should.have.property(JWTClaims.MESSAGE_ACK_ID_CLAIM, valid.decoded[JWTClaims.QUERY_CLAIM]['@id']);
+  }); // 1.4
 
 }); // describe 1

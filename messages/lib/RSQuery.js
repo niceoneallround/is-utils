@@ -87,7 +87,7 @@ class RSQuery {
 
     const loggingMD = {
             ServiceType: serviceCtx.serviceName,
-            FileName: 'isUtils/rsQueryResult.js', };
+            FileName: 'isUtils/messages/rsQueryResult.js', };
 
     const hostname = serviceCtx.config.getHostname();
 
