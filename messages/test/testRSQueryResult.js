@@ -51,7 +51,6 @@ describe('1 Test Validate', function () {
                             );
 
     let result = rsQueryResult.validateJWT(dummyServiceCtx, rsQueryResultJWT);
-    console.log(result);
     result.should.not.have.property('error');
     result.should.have.property('decoded');
     result.should.have.property('decodedSubjectJWTs');

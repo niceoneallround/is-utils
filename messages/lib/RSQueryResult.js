@@ -6,16 +6,18 @@
 
  The RSQueryResult JWT contains the following claims
  - a pn jwt type claim of pn_t.rsQueryResult
- - a query claim - this the query result node that was passed in
- - a privacy pipe claim - this is the pipe used to send the data to the IS
+ - a query claim - this the query result node that was passed in. A query result node has the followig fields
+    - @id: the message id for the result
+    - @type: pn_t.RSQueryResult
+    - pn_p.responding_to: the @id of the query that this is the results for
+ - a privacy pipe claim - this is the obfuscate pipe Id used to send the data from the RS
  - a subject jwts claim - the subject results represented as an array of subject JWTs - one per returned subject
-     - note transaction id is part of the subject record so know what transaction creates this subject
  - a subject link jwts claim - a jwt for each link between a reference source subject and the passed in subject
    - can also contains custom claims - how do this
 
 For creation the INPUT is
   - the serviceCtx
-  - the query
+  - the query result node
   - the subject JWTs
   - the subject link JWTs
   - the privacy pipe Id
@@ -54,7 +56,7 @@ class RSQueryResult {
 
     const loggingMD = {
             ServiceType: serviceCtx.serviceName,
-            FileName: 'isUtils/messages/rsQueryResult.js', };
+            FileName: 'isUtils/messages/RSQueryResult.js', };
 
     const hostname = serviceCtx.config.getHostname();
 
@@ -90,6 +92,28 @@ class RSQueryResult {
       });
 
       return result;
+    } else {
+      //
+      // validate the query
+      //
+      result.query = result.decoded[JWTClaims.QUERY_CLAIM];
+      if (!((JSONLDUtils.isType(result.query, PN_T.RSSubjectQueryResult)))) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR type is not [%s] missing in:%j', PN_T.RSSubjectQueryResult, result.query),
+        });
+
+        return result;
+      }
+
+      if (!result.query[PN_P.respondingTo]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR proeprty %s from:%j', PN_P.respondingTo, result.query),
+        });
+
+        return result;
+      }
     }
 
     if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) {
@@ -114,27 +138,6 @@ class RSQueryResult {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
         errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_LINK_JWTS_CLAIM, result.decoded),
-      });
-
-      return result;
-    }
-
-    //
-    // validate the query
-    result.query = result.decoded[JWTClaims.QUERY_CLAIM];
-    if (!((JSONLDUtils.isType(result.query, PN_T.RSSubjectQueryResult)))) {
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR type is not [%s] missing in:%j', PN_T.RSSubjectQueryResult, result.query),
-      });
-
-      return result;
-    }
-
-    if (!result.query[PN_P.respondingTo]) {
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR proeprty %s from:%j', PN_P.respondingTo, result.query),
       });
 
       return result;
