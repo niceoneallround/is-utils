@@ -45,7 +45,7 @@ class RSAQuery {
     assert(subjectRestrictions, 'createJSON subjectRestrictions param is missing');
 
     return {
-      '@id': PNDataModel.ids.createQueryResultId(domainName, nextIdCounter()),
+      '@id': PNDataModel.ids.createQueryId(domainName, nextIdCounter()),
       '@type': PN_T.RSAQuery,
       version: '2',
       subject_restrictions: subjectRestrictions, };
