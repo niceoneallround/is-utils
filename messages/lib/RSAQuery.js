@@ -6,8 +6,8 @@
   It has the following format
 
   {
-    id: globally unique id
-    type: https://pn.schema.webshield.io/prop#RSAQuery
+    @id: globally unique id
+    @type: https://pn.schema.webshield.io/prop#RSAQuery
     version: 2
     subject_restrictions: [] of subject restriction nodes
   }
@@ -45,8 +45,8 @@ class RSAQuery {
     assert(subjectRestrictions, 'createJSON subjectRestrictions param is missing');
 
     return {
-      id: PNDataModel.ids.createQueryResultId(domainName, nextIdCounter()),
-      type: PN_T.RSAQuery,
+      '@id': PNDataModel.ids.createQueryResultId(domainName, nextIdCounter()),
+      '@type': PN_T.RSAQuery,
       version: '2',
       subject_restrictions: subjectRestrictions, };
   }
@@ -60,21 +60,21 @@ class RSAQuery {
       });
     }
 
-    if (!rq.id) {
+    if (!rq['@id']) {
       return PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
-        errMsg: util.format('ERROR no id passed in request:%j', rq),
+        errMsg: util.format('ERROR no @id passed in request:%j', rq),
       });
     }
 
-    if (!rq.type) {
+    if (!rq['@type']) {
       return PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
-        errMsg: util.format('ERROR no type passed in request:%j', rq),
+        errMsg: util.format('ERROR no @type passed in request:%j', rq),
       });
     }
 
-    if (rq.type !== PN_T.RSAQuery) {
+    if (rq['@type'] !== PN_T.RSAQuery) {
       return PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
         errMsg: util.format('ERROR no type passed in request:%j', rq),
@@ -130,8 +130,8 @@ class RSAQuery {
     bob[PN_P.pnDataModel] = TestReferenceSourcePNDataModel.model.ID;
 
     return {
-      id: PNDataModel.ids.createQueryId('fake.com', nextIdCounter()),
-      type: PN_T.RSAQuery,
+      '@id': PNDataModel.ids.createQueryId('fake.com', nextIdCounter()),
+      '@type': PN_T.RSAQuery,
       version: '2',
       subject_restrictions: [alice, bob],
     };

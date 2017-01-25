@@ -37,9 +37,9 @@ and contains the subject results as the body of an apply outbound privacy pipe m
  The V2 message format is
 
  {
-   "id": an id that can be used for tracking locally
-   "type": RSAQueryResult,
-   "responding_to": the @id of the query that this is the results for
+   "@id": an id that can be used for tracking locally
+   "@type": RSAQueryResult,
+   "responding_to": the id of the query that this is the results for
    "version": '2'
    "subjects": [] of subject JSONLD nodes see below
    "links": [] of subject link credential nodes, see below
@@ -93,12 +93,13 @@ class RSAQueryResult {
   static createJSON(domainName, query, subjectResults, linkCredentials, props) {
     assert(domainName, 'createJSON domainName param is missing');
     assert(query, 'createJSON query param is missing');
+    assert(query['@id'], util.format('createJSON query.@id param is missing:%j', query));
     assert(subjectResults, 'createJSON subjectResults param is missing');
     assert(linkCredentials, 'createJSON linkCredentials param is missing');
 
     let mess = {
-      id: PNDataModel.ids.createQueryResultId(domainName, nextIdCounter()),
-      type: PN_T.RSAQueryResult,
+      '@id': PNDataModel.ids.createQueryResultId(domainName, nextIdCounter()),
+      '@type': PN_T.RSAQueryResult,
       version: '2',
       responding_to: query['@id'],
       subjects: subjectResults,
@@ -118,6 +119,27 @@ class RSAQueryResult {
       return PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
         errMsg: util.format('ERROR no %s passed in request', PN_T.RSSubjectQuery),
+      });
+    }
+
+    if (!rq['@id']) {
+      return PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
+        errMsg: util.format('ERROR no @id passed in request:%j', rq),
+      });
+    }
+
+    if (!rq['@type']) {
+      return PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
+        errMsg: util.format('ERROR no @type passed in request:%j', rq),
+      });
+    }
+
+    if (rq['@type'] !== PN_T.RSAQueryResult) {
+      return PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, nextIdCounter()),
+        errMsg: util.format('ERROR @type not:%s request:%j',  PN_T.RSAQueryResult, rq),
       });
     }
 

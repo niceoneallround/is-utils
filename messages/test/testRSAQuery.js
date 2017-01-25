@@ -20,8 +20,8 @@ describe('1 create JSON messages tests', function () {
     let domainName = 'abc.com';
 
     let mess = RSAQuery.createJSON(domainName, subjectRestrictions);
-    mess.should.have.property('id');
-    mess.should.have.property('type');
+    mess.should.have.property('@id');
+    mess.should.have.property('@type');
     mess.should.have.property('subject_restrictions', subjectRestrictions);
     mess.should.have.property('version', '2');
     let invalid = RSAQuery.validateJSON(mess, 'fakehost.com');
