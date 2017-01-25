@@ -201,11 +201,28 @@ class RSAQueryResult {
     let bob = TestReferenceSourcePNDataModel.canons.createBob(subProps);
     bob[PN_P.jobID] = 'job-2';
 
+    //
+    // create links credentials
+    //
+    let aliceLink = {
+      '@id': 'cred_1', // note the RSPA will convert to a URL
+      '@type': PN_T.SubjectLinkCredential,
+      [PN_P.linkSubject]: alice['@id'], // the reference source subject
+      [PN_P.subject]: 'canon-needs-a-link-id1', // the input subject
+    };
+
+    let bobLink = {
+      '@id': 'cred_1', // note the RSPA will convert to a URL
+      '@type': PN_T.SubjectLinkCredential,
+      [PN_P.linkSubject]: bob['@id'], // the reference source subject
+      [PN_P.subject]: 'canon-needs-a-link-id2', // the input subject
+    };
+
     return RSAQueryResult.createJSON(
                   'fake.com',
                   query,
                   [alice, bob], // subject results
-                  [] //linkCredentials
+                  [aliceLink, bobLink] //linkCredentials
                 );
   }
 

@@ -36,6 +36,8 @@ it('1.2 validate canon ', function () {
   let canon = RSAQueryResult.createCanonJSON({ id: 'id1', });
   let invalid = RSAQueryResult.validateJSON(canon, 'fake.com');
   assert(!invalid, util.format('QueryResult should be valid:%j', invalid));
+  canon.subjects.length.should.be.equal(2);
+  canon.links.length.should.be.equal(2);
 }); // 1.2
 
 /*describe('1 Test Validate', function () {
