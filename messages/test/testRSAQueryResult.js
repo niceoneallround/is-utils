@@ -31,6 +31,13 @@ describe('1 create JSON messages tests', function () {
   }); // 1.1
 }); // describe 1
 
+it('1.2 validate canon ', function () {
+  'use strict';
+  let canon = RSAQueryResult.createCanonJSON({ id: 'id1', });
+  let invalid = RSAQueryResult.validateJSON(canon, 'fake.com');
+  assert(!invalid, util.format('QueryResult should be valid:%j', invalid));
+}); // 1.2
+
 /*describe('1 Test Validate', function () {
   'use strict';
 

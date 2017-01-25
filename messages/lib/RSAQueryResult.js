@@ -77,7 +77,9 @@ and contains the subject results as the body of an apply outbound privacy pipe m
 const assert = require('assert');
 const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
+const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
+const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
 const util = require('util');
 
 let messageIdCounter = 0;
@@ -179,6 +181,32 @@ class RSAQueryResult {
     }
 
     return null;
+  }
+
+  static createCanonJSON(props) {
+    assert(props, 'createCanonJSON props param is missing');
+    assert(props.id, util.format('createCanonJSON props.id is missing:%j', props));
+
+    // add query
+    let query = {
+        '@id': props.id,
+        '@type': [PN_T.RSAQueryResult],
+      };
+
+    // create test subject restrictions
+    let subProps = { domainName: 'fake.com', };
+    let alice = TestReferenceSourcePNDataModel.canons.createAlice(subProps);
+    alice[PN_P.jobID] = 'job-1';
+
+    let bob = TestReferenceSourcePNDataModel.canons.createBob(subProps);
+    bob[PN_P.jobID] = 'job-2';
+
+    return RSAQueryResult.createJSON(
+                  'fake.com',
+                  query,
+                  [alice, bob], // subject results
+                  [] //linkCredentials
+                );
   }
 
 } // class
