@@ -1,7 +1,7 @@
 /*jslint node: true, vars: true */
 
 const assert = require('assert');
-const ApplyOutboundPPRequest = require('../lib/ApplyOutboundPPRequest');
+const RSAQueryResult = require('../lib/RSAQueryResult');
 const BaseSubjectPNDataModel = require('data-models/lib/BaseSubjectPNDataModel');
 const BASE_T = BaseSubjectPNDataModel.TYPE;
 const util = require('util');
@@ -20,13 +20,13 @@ describe('1 create JSON messages tests', function () {
     let domainName = 'abc.com';
     let query = { '@id': '1', };
 
-    let mess = ApplyOutboundPPRequest.createJSON(domainName, query, subjectResults, linkCredentials);
+    let mess = RSAQueryResult.createJSON(domainName, query, subjectResults, linkCredentials);
     mess.should.have.property('id');
     mess.should.have.property('type');
     mess.should.have.property('subjects', subjectResults);
     mess.should.have.property('links', linkCredentials);
     mess.should.have.property('responding_to', query['@id']);
-    let invalid = ApplyOutboundPPRequest.validateJSON(mess, 'fakehost.com');
+    let invalid = RSAQueryResult.validateJSON(mess, 'fakehost.com');
     assert(!invalid, util.format('should be valid:%j', invalid));
   }); // 1.1
 }); // describe 1

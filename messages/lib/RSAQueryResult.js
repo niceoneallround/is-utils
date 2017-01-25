@@ -3,7 +3,7 @@
 /*
 
 This message is sent from the Reference Source Adapter to the Reference Source Privacy Agent
-and contains the subject results.
+and contains the subject results as the body of an apply outbound privacy pipe message
 
  Contains utils for validating the apply outbound request privacy pipe request
  from the adapter
@@ -87,7 +87,7 @@ function nextIdCounter() {
   return moment().unix() + '-' + messageIdCounter;
 }
 
-class ApplyOutboundPPRequest {
+class RSAQueryResult {
 
   // props.notMatched - optional
   static createJSON(domainName, query, subjectResults, linkCredentials, props) {
@@ -98,7 +98,7 @@ class ApplyOutboundPPRequest {
 
     let mess = {
       id: PNDataModel.ids.createQueryResultId(domainName, nextIdCounter()),
-      type: 'RSAQueryResult',
+      type: PN_T.RSAQueryResult,
       version: '2',
       responding_to: query['@id'],
       subjects: subjectResults,
@@ -159,32 +159,6 @@ class ApplyOutboundPPRequest {
     return null;
   }
 
-  /* OLD CODE USED WITH V1, as NO V1 adapters only add back if customer
-     cannot upgrade adapter
-
-  // find the query node - not should check if more than one
-  static findQueryNode(rq) {
-
-    let results = ApplyOutboundPPRequest.findNodes(rq, PN_T.RSSubjectQuery);
-    if (results.length === 0) {
-      return null;
-    } else {
-      return results[0];
-    }
-  }
-
-  // find the query node - not should check if more than one
-  static findNodes(rq, type) {
-
-    let results = [];
-    for (let i = 0; i < rq['@graph'].length; i++) {
-      if (JSONLDUtils.isType(rq['@graph'][i], type)) {
-        results.push(rq['@graph'][i]);
-      }
-    }
-
-    return results;
-  } */
 } // class
 
 // just want to expose the class and nothing else and allow
@@ -194,4 +168,4 @@ class ApplyOutboundPPRequest {
 // let invalid = ApplyOutboundPPRequest.validateJSON()
 // ley ApplyOutboundPPRequest = ApplyOutboundPPRequest(req);
 //
-module.exports = ApplyOutboundPPRequest;
+module.exports = RSAQueryResult;
