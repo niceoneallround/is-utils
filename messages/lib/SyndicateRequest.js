@@ -158,7 +158,6 @@ class SyndicateRequest {
     //
     // validate the syndicate request
     result.syndicateRequest = result.decoded[JWTClaims.SYNDICATE_REQUEST_CLAIM];
-    console.log(result.syndicateRequest);
     if (!((JSONLDUtils.isType(result.syndicateRequest, PN_T.SubjectSyndicationRequest)))) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
@@ -254,10 +253,10 @@ class SyndicateRequest {
           return result;
         }
 
-        if (!subject[JWTClaims.SUBJECT_SYNDICATION_ID_CLAIM]) {
+        if (!subject[JWTClaims.SYNDICATION_ID_CLAIM]) {
           result.error = PNDataModel.errors.createTypeError({
             id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-            errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_SYNDICATION_ID_CLAIM, subject),
+            errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SYNDICATION_ID_CLAIM, subject),
           });
 
           return result;

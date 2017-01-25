@@ -145,6 +145,7 @@ class RSQueryResult {
 
     //
     // verify the subject JWTS
+    //
     result.subjectJWTs = result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM];
     result.decodedSubjectJWTs = [];
     if (serviceCtx.config.VERIFY_JWT) {
@@ -181,10 +182,10 @@ class RSQueryResult {
         return result;
       }
 
-      if (!result.decodedSubjectJWTs[i][JWTClaims.SUBJECT_SYNDICATION_ID_CLAIM]) {
+      if (!result.decodedSubjectJWTs[i][JWTClaims.SYNDICATION_ID_CLAIM]) {
         result.error = PNDataModel.errors.createTypeError({
           id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-          errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_SYNDICATION_ID_CLAIM, result.decodedSubjectJWTs[i]),
+          errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SYNDICATION_ID_CLAIM, result.decodedSubjectJWTs[i]),
         });
         return result;
       }

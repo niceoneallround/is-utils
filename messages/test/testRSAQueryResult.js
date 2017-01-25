@@ -4,6 +4,9 @@ const assert = require('assert');
 const RSAQueryResult = require('../lib/RSAQueryResult');
 const BaseSubjectPNDataModel = require('data-models/lib/BaseSubjectPNDataModel');
 const BASE_T = BaseSubjectPNDataModel.TYPE;
+const PNDataModel = require('data-models/lib/PNDataModel');
+const PN_P = PNDataModel.PROPERTY;
+const PN_T = PNDataModel.TYPE;
 const util = require('util');
 
 describe('1 create JSON messages tests', function () {
@@ -16,7 +19,13 @@ describe('1 create JSON messages tests', function () {
       { '@id': '4', '@type': ['abc'], },
     ];
 
-    let linkCredentials = ['a', 'b', 'c'];
+    let linkCredentials = [{
+      '@id': 'abc',
+      '@type': PN_T.SubjectLinkCredential,
+      [PN_P.linkSubject]: { '@id': 'abc', '@type': ['fake'], },
+      [PN_P.subject]: 'andId', },
+    ];
+
     let domainName = 'abc.com';
     let query = { '@id': '1', };
 

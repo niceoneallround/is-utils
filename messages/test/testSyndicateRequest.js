@@ -9,7 +9,7 @@ const testUtils = require('node-utils/testing-utils/lib/utils');
 const should = require('should');
 const util = require('util');
 
-describe('1 Test Sydicante Request', function () {
+describe('1 Test Syndicate Request', function () {
   'use strict';
 
   const privacyPipeId = 'ppId-1';
