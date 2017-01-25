@@ -164,7 +164,6 @@ class RSQuery {
     //
     // validate the query
     result.query = result.decoded[JWTClaims.QUERY_CLAIM];
-    console.log(result.query);
     if (!((JSONLDUtils.isType(result.query, PN_T.RSSubjectQuery)))) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
