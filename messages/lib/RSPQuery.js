@@ -121,21 +121,6 @@ class RSPQuery {
       'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/dc#dc-paction1483568111',
     ];
 
-    qry[PN_P.syndicatedEntity] = [
-      PNSyndicatedEntity.create('canon-se-id-1',
-        {
-          hostname: 'fake.com',
-          jobId: 'canon-jobid-1',
-          pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
-        }),
-      PNSyndicatedEntity.create('canon-se-id-2',
-        {
-          hostname: 'fake.com',
-          jobId: 'canon-jobid-2',
-          pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
-        }),
-      ];
-
     // this subject data is tied to content encrypt key metadata
     // https://md.pn.id.webshield.io/encrypt_key_md/io/webshield/test/dc#content-key-1
     //
@@ -204,6 +189,24 @@ class RSPQuery {
         },
       },
     ];
+
+    // create syndicated entity based on above subjects
+    qry[PN_P.syndicatedEntity] = [
+      PNSyndicatedEntity.createJSON('canon-se-id-1',
+        {
+          hostname: 'fake.com',
+          jobId: 'canon-jobid-1',
+          pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
+          subjectIds: qry[PN_P.subject][0]['@id'],
+        }),
+      PNSyndicatedEntity.createJSON('canon-se-id-2',
+        {
+          hostname: 'fake.com',
+          jobId: 'canon-jobid-2',
+          pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
+          subjectIds: qry[PN_P.subject][1]['@id'],
+        }),
+      ];
 
     return JWTUtils.signData(qry, serviceCtx.config.crypto.jwt, {});
   }

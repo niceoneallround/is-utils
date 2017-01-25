@@ -299,10 +299,18 @@ class RSQuery {
     ];
 
     let syndEnts = [
-      PNSyndicatedEntity.create('test-se-1',
-        { hostname: hostname, jobId: 'fake-test-job-1', pnDataModelId: pnDataModelId, }),
-      PNSyndicatedEntity.create('test-se-2',
-        { hostname: hostname, jobId: 'fake-test-job-2', pnDataModelId: pnDataModelId, }),
+      PNSyndicatedEntity.createJSON('test-se-1',
+        { hostname: hostname,
+          jobId: 'fake-test-job-1',
+          pnDataModelId: pnDataModelId,
+          subjectIds: subjects[0]['@id'],
+        }),
+      PNSyndicatedEntity.createJSON('test-se-2',
+        { hostname: hostname,
+          jobId: 'fake-test-job-2',
+          pnDataModelId: pnDataModelId,
+          subjectIds: subjects[1]['@id'],
+        }),
     ];
 
     let createProps = {
