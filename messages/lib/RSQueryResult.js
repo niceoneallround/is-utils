@@ -32,6 +32,7 @@ The validateJWT(serviceCtx, jwt) performs the following
 */
 
 const assert = require('assert');
+const BaseSubjectPNDataModel = require('data-models/lib/BaseSubjectPNDataModel');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils').npUtils;
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
@@ -116,15 +117,6 @@ class RSQueryResult {
       }
     }
 
-    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) {
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_JWTS_CLAIM, result.decoded),
-      });
-
-      return result;
-    }
-
     if (!result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM]) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
@@ -134,10 +126,10 @@ class RSQueryResult {
       return result;
     }
 
-    if (!result.decoded[JWTClaims.SUBJECT_LINK_JWTS_CLAIM]) {
+    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) {
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_LINK_JWTS_CLAIM, result.decoded),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_JWTS_CLAIM, result.decoded),
       });
 
       return result;
@@ -174,6 +166,14 @@ class RSQueryResult {
     // verify the subject JWT claims are as expected
     for (let i = 0; i < result.decodedSubjectJWTs.length; i++) {
 
+      if (!result.decodedSubjectJWTs[i][JWTClaims.JWT_ID_CLAIM]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.JWT_ID_CLAIM, result.decodedSubjectJWTs[i]),
+        });
+        return result;
+      }
+
       if (!result.decodedSubjectJWTs[i][JWTClaims.SUBJECT_CLAIM]) {
         result.error = PNDataModel.errors.createTypeError({
           id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
@@ -197,6 +197,99 @@ class RSQueryResult {
         });
         return result;
       }
+    }
+
+    if (!result.decoded[JWTClaims.SUBJECT_LINK_JWTS_CLAIM]) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_LINK_JWTS_CLAIM, result.decoded),
+      });
+
+      return result;
+    }
+
+    //
+    // verify the subject link JWTS
+    //
+    result.subjectLinkJWTs = result.decoded[JWTClaims.SUBJECT_LINK_JWTS_CLAIM];
+    result.decodedSubjectLinkJWTs = [];
+    if (serviceCtx.config.VERIFY_JWT) {
+      for (let i = 0; i < result.subjectLinkJWTs.length; i++) {
+        try {
+          result.decodedSubjectLinkJWTs.push(JWTUtils.newVerify(result.subjectLinkJWTs[i], serviceCtx.config.crypto.jwt));
+        } catch (err) {
+
+          result.badRequest = PNDataModel.errors.createInvalidJWTError({
+                    id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+                    type: PN_T.RSSubjectQueryResult, jwtError: err, });
+
+          serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
+                                      action: 'RsQuery-Result-ERROR-JWT-VERIFY-OF-SUBJECT_LINK_JWTs',
+                                      query: result.query['@id'],
+                                      inputJWT: inputJWT,
+                                      error: result.subjectLinkJWTs[i],
+                                      decoded: JWTUtils.decode(result.subjectLinkJWTs[i], { complete: true }),
+                                      jwtError: err, }, loggingMD);
+
+          return result;
+        }
+      }
+    }
+
+    // verify the subject link JWT claims are as expected
+    for (let i = 0; i < result.decodedSubjectLinkJWTs.length; i++) {
+
+      if (!result.decodedSubjectLinkJWTs[i][JWTClaims.JWT_ID_CLAIM]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.JWT_ID_CLAIM, result.decodedSubjectLinkJWTs[i]),
+        });
+        return result;
+      }
+
+      if (!result.decodedSubjectJWTs[i][JWTClaims.SYNDICATION_ID_CLAIM]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SYNDICATION_ID_CLAIM, result.decodedSubjectLinkJWTs[i]),
+        });
+        return result;
+      }
+
+      if (!result.decodedSubjectLinkJWTs[i][JWTClaims.SUBJECT_LINK_CLAIM]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_LINK_CLAIM, result.decodedSubjectLinkJWTs[i]),
+        });
+        return result;
+      }
+
+      // basic verification of the link credential
+      let link = result.decodedSubjectLinkJWTs[i][JWTClaims.SUBJECT_LINK_CLAIM];
+
+      if (!link[PN_P.subject]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s  in link in JWT:%j', PN_P.subject, result.decodedSubjectLinkJWTs[i]),
+        });
+        return result;
+      }
+
+      if (!link[PN_P.linkSubject]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s  in link in JWT:%j', PN_P.linkSubject, result.decodedSubjectLinkJWTs[i]),
+        });
+        return result;
+      }
+
+      if (!link[PN_P.syndicatedEntity]) {
+        result.error = PNDataModel.errors.createTypeError({
+          id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+          errMsg: util.format('ERROR no %s  in link in JWT:%j', PN_P.syndicatedEntity, result.decodedSubjectLinkJWTs[i]),
+        });
+        return result;
+      }
+
     }
 
     return result;
@@ -253,10 +346,35 @@ class RSQueryResult {
     let bobJWT = JWTUtils.signSubject(
         alice, pnDataModelId, syndicationId, serviceCtx.config.crypto.jwt, { subject: bob['@id'], });
 
+    //
+    // create links credentials
+    //
+    let aliceLink = {
+      '@id': PNDataModel.ids.createSubjectLinkId('fake.com', 'link-1'), // note the RSPA will convert to a URL
+      '@type': PN_T.SubjectLinkCredential,
+      [PN_P.linkSubject]: { '@id': alice['@id'], '@type': alice['@type'], }, // the reference source subject
+      [PN_P.syndicatedEntity]: 'https://pn.id.webshield.io/syndicated_entity/localhost#test-se-1', // hard coded from RSQuery canon!!!!
+      [PN_P.subject]: [BaseSubjectPNDataModel.canons.data.alice.id],
+    };
+
+    let aliceLinkJWT = JWTUtils.signSubjectLink(aliceLink, syndicationId, serviceCtx.config.crypto.jwt,
+                                  { subject: aliceLink['@id'], });
+
+    let bobLink = {
+      '@id': PNDataModel.ids.createSubjectLinkId('fake.com', 'link-2'), // note the RSPA will convert to a URL
+      '@type': PN_T.SubjectLinkCredential,
+      [PN_P.linkSubject]: { '@id': bob['@id'], '@type': bob['@type'], }, // the reference source subject
+      [PN_P.syndicatedEntity]: 'https://pn.id.webshield.io/syndicated_entity/localhost#test-se-2', // hard coded from RSQuery canon!!!!
+      [PN_P.subject]: [BaseSubjectPNDataModel.canons.data.bob.id],
+    };
+
+    let bobLinkJWT = JWTUtils.signSubjectLink(bobLink, syndicationId, serviceCtx.config.crypto.jwt,
+                                  { subject: bobLink['@id'], });
+
     let rsQueryResultJWT = JWTUtils.signRSQueryResult(
                               queryResult,
                               [aliceJWT, bobJWT],
-                              [], // link JWTs
+                              [aliceLinkJWT, bobLinkJWT],
                               privacyPipeId,
                               serviceCtx.config.crypto.jwt,
                               { subject: queryResult['@id'], }

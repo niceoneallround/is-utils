@@ -1,6 +1,7 @@
 /*jslint node: true, vars: true */
 
 const assert = require('assert');
+const BaseSubjectPNDataModel = require('data-models/lib/BaseSubjectPNDataModel');
 const localTestUtils = require('./testUtils').utils;
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
@@ -41,10 +42,21 @@ describe('1 Test Validate', function () {
     let aliceJWT = JWTUtils.signSubject(
         alice, pnDataModelId, syndicationId, dummyServiceCtx.config.crypto.jwt, { subject: alice['@id'], });
 
+    let aliceLink = {
+      '@id': PNDataModel.ids.createSubjectLinkId('fake.com', 'link-1'), // note the RSPA will convert to a URL
+      '@type': PN_T.SubjectLinkCredential,
+      [PN_P.linkSubject]: { '@id': alice['@id'], '@type': alice['@type'], }, // the reference source subject
+      [PN_P.syndicatedEntity]: 'https://pn.id.webshield.io/syndicated_entity/localhost#test-se-1', // hard coded from RSQuery canon!!!!
+      [PN_P.subject]: [BaseSubjectPNDataModel.canons.data.alice.id],
+    };
+
+    let aliceLinkJWT = JWTUtils.signSubjectLink(aliceLink, syndicationId, dummyServiceCtx.config.crypto.jwt,
+                                  { subject: aliceLink['@id'], });
+
     let rsQueryResultJWT = JWTUtils.signRSQueryResult(
                               queryResult,
                               [aliceJWT],
-                              [], // link JWTs
+                              [aliceLinkJWT], // link JWTs
                               privacyPipeId,
                               dummyServiceCtx.config.crypto.jwt,
                               { subject: queryResult['@id'], }
@@ -54,6 +66,9 @@ describe('1 Test Validate', function () {
     result.should.not.have.property('error');
     result.should.have.property('decoded');
     result.should.have.property('decodedSubjectJWTs');
+    result.decodedSubjectJWTs.length.should.be.equal(1);
+    result.should.have.property('decodedSubjectLinkJWTs');
+    result.decodedSubjectLinkJWTs.length.should.be.equal(1);
   }); // 1.1
 
   it('1.2 should return error if jwt is malformed', function () {
