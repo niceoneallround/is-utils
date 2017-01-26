@@ -117,6 +117,8 @@ class RSAQuery {
   static createCanonJSON() {
 
     // create query restriction nodes from the test reference source canon nodes
+
+    // setting the restriction @id to the subject but would be the syndicated entity id in real life
     let alice = TestReferenceSourcePNDataModel.canons.createAlice(
                 { domainName: 'fake.com',
                   idValue: nextIdCounter(), });

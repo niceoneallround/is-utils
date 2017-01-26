@@ -266,14 +266,14 @@ class RSAQueryResult {
       '@id': 'cred_1', // note the RSPA will convert to a URL
       '@type': PN_T.SubjectLinkCredential,
       [PN_P.linkSubject]: { '@id': alice['@id'], '@type': alice['@type'], }, // the reference source subject
-      [PN_P.subject]: 'https://id.webshield.io/io/webshield/test/subject#111', // the input subject from RSQuery Canon
+      [PN_P.subject]: alice['@id'], // the RSAQuery Canon sets this as the syndicated id so just use as no syndicated id
     };
 
     let bobLink = {
       '@id': 'cred_1', // note the RSPA will convert to a URL
       '@type': PN_T.SubjectLinkCredential,
       [PN_P.linkSubject]: { '@id': bob['@id'], '@type': bob['@type'], }, // the reference source subject
-      [PN_P.subject]: 'https://id.webshield.io/io/webshield/test/subject#222', // the input subject from RSQuery Canon
+      [PN_P.subject]: bob['@id'], // the RSAQuery Canon sets this as the syndicated id so just use as no syndicated id
     };
 
     return RSAQueryResult.createJSON(
