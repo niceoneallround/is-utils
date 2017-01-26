@@ -34,6 +34,7 @@ const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
 const PNSyndicatedEntity = require('data-models/lib/PNSyndicatedEntity');
+const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
 const util = require('util');
 
 class RSQuery {
@@ -214,7 +215,7 @@ class RSQuery {
 
     const hostname = serviceCtx.config.getHostname();
 
-    let pnDataModelId = 'pnDataModelId-1';
+    let pnDataModelId = TestReferenceSourcePNDataModel.model.ID;
     if ((props) && (props.pnDataModelId)) {
       pnDataModelId = props.pnDataModelId;
     }
