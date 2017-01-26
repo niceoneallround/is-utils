@@ -33,6 +33,7 @@ The validateJWT(serviceCtx, jwt) performs the following
 
 const assert = require('assert');
 const BaseSubjectPNDataModel = require('data-models/lib/BaseSubjectPNDataModel');
+const canonConstants = require('./canonConstants');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils').npUtils;
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
@@ -318,9 +319,8 @@ class RSQueryResult {
       respondingTo = props.respondingTo;
     }
 
-    let syndicationId = 'synd-id-1';
     if ((props) && (props.syndicationId)) {
-      syndicationId = props.syndicationId;
+      assert(false, 'props.syndicationId no longer supported');
     }
 
     let pnDataModelId = 'pnDataModelId-1';
@@ -340,11 +340,13 @@ class RSQueryResult {
 
     let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: serviceCtx.config.DOMAIN_NAME, });
     let aliceJWT = JWTUtils.signSubject(
-        alice, pnDataModelId, syndicationId, serviceCtx.config.crypto.jwt, { subject: alice['@id'], });
+        alice, pnDataModelId, canonConstants.ALICE_SYNDICATION_JOB_ID,
+        serviceCtx.config.crypto.jwt, { subject: alice['@id'], });
 
     let bob = TestReferenceSourcePNDataModel.canons.createBob({ domainName: serviceCtx.config.DOMAIN_NAME, });
     let bobJWT = JWTUtils.signSubject(
-        alice, pnDataModelId, syndicationId, serviceCtx.config.crypto.jwt, { subject: bob['@id'], });
+        alice, pnDataModelId, canonConstants.BOB_SYNDICATION_JOB_ID,
+        serviceCtx.config.crypto.jwt, { subject: bob['@id'], });
 
     //
     // create links credentials
@@ -357,7 +359,8 @@ class RSQueryResult {
       [PN_P.subject]: [BaseSubjectPNDataModel.canons.data.alice.id],
     };
 
-    let aliceLinkJWT = JWTUtils.signSubjectLink(aliceLink, syndicationId, serviceCtx.config.crypto.jwt,
+    let aliceLinkJWT = JWTUtils.signSubjectLink(aliceLink, canonConstants.ALICE_SYNDICATION_JOB_ID,
+                                  serviceCtx.config.crypto.jwt,
                                   { subject: aliceLink['@id'], });
 
     let bobLink = {
@@ -368,7 +371,8 @@ class RSQueryResult {
       [PN_P.subject]: [BaseSubjectPNDataModel.canons.data.bob.id],
     };
 
-    let bobLinkJWT = JWTUtils.signSubjectLink(bobLink, syndicationId, serviceCtx.config.crypto.jwt,
+    let bobLinkJWT = JWTUtils.signSubjectLink(bobLink, canonConstants.BOB_SYNDICATION_JOB_ID,
+                                  serviceCtx.config.crypto.jwt,
                                   { subject: bobLink['@id'], });
 
     let rsQueryResultJWT = JWTUtils.signRSQueryResult(

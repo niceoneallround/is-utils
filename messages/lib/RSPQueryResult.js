@@ -148,7 +148,7 @@ class RSPQueryResult {
   }
 
   //
-  // Create a canon rsQueryResult JWT that can be used for testing
+  // Create a canon rspQueryResult JWT that can be used for testing
   // props.respondingTo - optional
   // props.syndicationId - optional
   // props.pnDataModelId - optional

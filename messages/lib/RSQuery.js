@@ -25,6 +25,7 @@ The pn_t.rsQuery node has the following properties
 */
 
 const assert = require('assert');
+const canonConstants = require('./canonConstants');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils').npUtils;
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTType = require('jwt-utils/lib/jwtUtils').jwtType;
@@ -302,13 +303,13 @@ class RSQuery {
     let syndEnts = [
       PNSyndicatedEntity.createJSON('test-se-1',
         { hostname: hostname,
-          jobId: 'fake-test-job-1',
+          jobId: canonConstants.ALICE_SYNDICATION_JOB_ID,
           pnDataModelId: pnDataModelId,
           subjectIds: subjects[0]['@id'],
         }),
       PNSyndicatedEntity.createJSON('test-se-2',
         { hostname: hostname,
-          jobId: 'fake-test-job-2',
+          jobId: canonConstants.BOB_SYNDICATION_JOB_ID,
           pnDataModelId: pnDataModelId,
           subjectIds: subjects[1]['@id'],
         }),
