@@ -117,17 +117,17 @@ class RSAQuery {
   static createCanonJSON() {
 
     // create query restriction nodes from the test reference source canon nodes
-
-    // setting the restriction @id to the subject but would be the syndicated entity id in real life
     let alice = TestReferenceSourcePNDataModel.canons.createAlice(
                 { domainName: 'fake.com',
                   idValue: nextIdCounter(), });
+    alice['@id'] = 'https://pn.id.webshield.io/syndicated_entity/localhost#test-se-1'; // hard coded from RSQuery canon!!!!
     alice['@type'] = [PN_T.SubjectQueryRestriction];
     alice[PN_P.pnDataModel] = TestReferenceSourcePNDataModel.model.ID;
 
     let bob = TestReferenceSourcePNDataModel.canons.createBob(
                 { domainName: 'fake.com',
                   idValue: nextIdCounter(), });
+    bob['@id'] = 'https://pn.id.webshield.io/syndicated_entity/localhost#test-se-1'; // hard coded from RSQuery canon!!!!
     bob['@type'] = [PN_T.SubjectQueryRestriction];
     bob[PN_P.pnDataModel] = TestReferenceSourcePNDataModel.model.ID;
 
