@@ -22,6 +22,7 @@ pn_p.properties: {
       ptype: "string",  // property type
       node: backing subject id,
       propName: backing subject property name
+      jwt: the id of the jwt that produced the property - for now clear case may be obfuscated in future
  },
   the propery name: {
       ptype: "object", // note properties may come from multiple say addresses
@@ -30,6 +31,7 @@ pn_p.properties: {
           type: "string" | object
           node:'backing embedded object id', // note they have globally unqiue and backing entities are flattened
           propName: the backing embedded object id
+          jwt: the id of the jwt that produced the property - for now clear case may be obfuscated in future
     }
 }
 
@@ -39,7 +41,8 @@ pn_p.properties: {
   'https://schema.org/givenName': {
     ptype: "string",
     node: "https://id.webshield.io/com/abc/subject#1",
-    propName: 'http://abc.com.schema.../firstName'
+    propName: 'http://abc.com.schema.../firstName',
+    jwt: http://jwt id
   },
   'https://schema.org/address' : {
     ptype: 'object',
@@ -48,6 +51,7 @@ pn_p.properties: {
         ptype: 'string',
         node: "https://id.webshield.io/com/abc/address/23",
         propName: 'https://abc.com.schema.webshield.io/prop#zipCode',
+        jwt: http://jwt id
       }
   }
 }
@@ -105,10 +109,11 @@ class SyndicatedEntity {
   }
 
   // add a mapped property to the Syndicated entities informatiom model
-  addProperty(name, backingSubjectId, subjectPropName, optionalParams) {
+  addProperty(name, backingSubjectId, subjectPropName, jwtId, optionalParams) {
     assert(name, 'addProperty - name param missing');
     assert(backingSubjectId, 'addProperty - backingSubjectId param missing');
     assert(subjectPropName, 'addProperty - subjectPropName param missing');
+    assert(jwtId, 'addProperty - jwtId param missing');
 
     let ptype = 'string';
     if ((optionalParams) && (optionalParams.ptype)) {
@@ -119,6 +124,7 @@ class SyndicatedEntity {
       [PN_P.ptype]: ptype,
       [PN_P.node]: backingSubjectId,
       [PN_P.subjectPropName]: subjectPropName,
+      [PN_P.jwt]: jwtId,
     };
 
     // for now do not convert into a map as only 1 or 2 subjects and easier
@@ -139,11 +145,12 @@ class SyndicatedEntity {
     }
   }
 
-  addEmbeddedObjectProperty(name, embedName, embedBackNode, embedSubPropName, optionalParams) {
+  addEmbeddedObjectProperty(name, embedName, embedBackNode, embedSubPropName, jwtId, optionalParams) {
     assert(name, 'addEmbeddedObjectProperty - name param missing');
     assert(embedName, 'addEmbeddedObjectProperty - embedName param missing');
     assert(embedBackNode, 'addEmbeddedObjectProperty - embedBackNode param missing');
     assert(embedSubPropName, 'addEmbeddedObjectProperty - embedSubPropName param missing');
+    assert(jwtId, 'addProperty - jwtId param missing');
 
     if (!this[PN_P.properties][name]) {
       // first prop for this embed object
@@ -163,6 +170,7 @@ class SyndicatedEntity {
       [PN_P.ptype]: ptype,
       [PN_P.node]: embedBackNode,
       [PN_P.subjectPropName]: embedSubPropName,
+      [PN_P.jwt]: jwtId,
     };
   }
 

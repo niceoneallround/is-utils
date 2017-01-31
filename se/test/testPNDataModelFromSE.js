@@ -24,8 +24,8 @@ describe('1 Test Syndicated Entity', function () {
     let se = new SyndicatedEntity('id1', props);
 
     let baseAlice = BaseSubjectPNDataModel.canons.createAlice({ domainName: 'abc.com', });
-    se.addProperty('https://schema.org/givenName', baseAlice['@id'], BASE_P.givenName);
-    se.addProperty('https://schema.org/familyName', baseAlice['@id'], BASE_P.familyName);
+    se.addProperty('https://schema.org/givenName', baseAlice['@id'], BASE_P.givenName, 'jwt1');
+    se.addProperty('https://schema.org/familyName', baseAlice['@id'], BASE_P.familyName, 'jwt2');
 
     return se.promisePNDataModelEntity(PN_T.SubjectQueryRestriction, TestReferenceSourcePNDataModel.model.ID, [baseAlice])
       .then(
