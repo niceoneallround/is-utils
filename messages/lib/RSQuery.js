@@ -34,7 +34,7 @@ const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
-const PNSyndicatedEntity = require('data-models/lib/PNSyndicatedEntity');
+const SyndicatedEntity = require('../../se/lib/SyndicatedEntity');
 const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
 const util = require('util');
 
@@ -300,7 +300,41 @@ class RSQuery {
       },
     ];
 
-    let syndEnts = [
+    //
+    // Create a syndicated entity in the format of the target reference source data model
+    // FOR NOW JUST HARD CODE as FOLLOWS
+    // - just use name and given name
+    let syndEnts = [];
+
+    let subject = subjects[0];
+    let se = new SyndicatedEntity('canon-se-id-1', {
+      hostname: hostname,
+      pnDataModelId: pnDataModelId,
+      jobId: canonConstants.ALICE_SYNDICATION_JOB_ID,
+    });
+
+    se.addProperty('https://schema.org/givenName', // target schema the test referecne source
+                subject['@id'], 'https://schema.org/givenName', 'jwt1-rspquery-canon');
+    se.addProperty('https://schema.org/familyName', subject['@id'],
+                'https://schema.org/familyName', 'jwt1-rspquery-canon');
+
+    syndEnts.push(se);
+
+    subject = subjects[1];
+    se = new SyndicatedEntity('canon-se-id-2', {
+      hostname: hostname,
+      pnDataModelId: pnDataModelId,
+      jobId: canonConstants.BOB_SYNDICATION_JOB_ID,
+    });
+
+    se.addProperty('https://schema.org/givenName', // target schema the test referecne source
+                subject['@id'], 'https://schema.org/givenName', 'jwt2-rspquery-canon');
+    se.addProperty('https://schema.org/familyName', subject['@id'],
+                'https://schema.org/familyName', 'jwt2-rspquery-canon');
+
+    syndEnts.push(se);
+
+    /* OLD CODE let syndEnts = [
       PNSyndicatedEntity.createJSON('test-se-1',
         { hostname: hostname,
           jobId: canonConstants.ALICE_SYNDICATION_JOB_ID,
@@ -313,7 +347,7 @@ class RSQuery {
           pnDataModelId: pnDataModelId,
           subjectIds: subjects[1]['@id'],
         }),
-    ];
+    ];*/
 
     let createProps = {
       postBackURL: postBackURL,

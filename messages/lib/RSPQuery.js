@@ -31,7 +31,7 @@ const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
-const PNSyndicatedEntity = require('data-models/lib/PNSyndicatedEntity');
+const SyndicatedEntity = require('../../se/lib/SyndicatedEntity');
 const PrivacyPNDataModelUtils = require('data-models/lib/PrivacyPNDataModel').utils;
 const RSCanon = require('metadata/lib/referenceSource').canons;
 const util = require('util');
@@ -190,7 +190,41 @@ class RSPQuery {
       },
     ];
 
-    // create syndicated entity based on above subjects
+    //
+    // Create a syndicated entity in the format of the target reference source data model
+    // FOR NOW JUST HARD CODE as FOLLOWS
+    // - just use name and given name
+    qry[PN_P.syndicatedEntity] = [];
+
+    let subject = qry[PN_P.subject][0];
+    let se = new SyndicatedEntity('canon-se-id-1', {
+      hostname: 'fake.com',
+      pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
+      jobId: 'canon-jobid-1',
+    });
+
+    se.addProperty('https://schema.org/givenName', // target schema the test referecne source
+                subject['@id'], 'https://schema.org/givenName', 'jwt1-rspquery-canon');
+    se.addProperty('https://schema.org/familyName', subject['@id'],
+                'https://schema.org/familyName', 'jwt1-rspquery-canon');
+
+    qry[PN_P.syndicatedEntity].push(se);
+
+    subject = qry[PN_P.subject][1];
+    se = new SyndicatedEntity('canon-se-id-2', {
+      hostname: 'fake.com',
+      pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
+      jobId: 'canon-jobid-2',
+    });
+
+    se.addProperty('https://schema.org/givenName', // target schema the test referecne source
+                subject['@id'], 'https://schema.org/givenName', 'jwt2-rspquery-canon');
+    se.addProperty('https://schema.org/familyName', subject['@id'],
+                'https://schema.org/familyName', 'jwt2-rspquery-canon');
+
+    qry[PN_P.syndicatedEntity].push(se);
+
+    /*// create syndicated entity based on above subjects
     qry[PN_P.syndicatedEntity] = [
       PNSyndicatedEntity.createJSON('canon-se-id-1',
         {
@@ -206,7 +240,7 @@ class RSPQuery {
           pnDataModelId: JSONLDUtils.getId(qry[PN_P.referenceSource], PN_P.pnDataModel),
           subjectIds: qry[PN_P.subject][1]['@id'],
         }),
-      ];
+      ];*/
 
     return JWTUtils.signData(qry, serviceCtx.config.crypto.jwt, {});
   }

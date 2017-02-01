@@ -1,6 +1,6 @@
 {
   "name": "is-utils",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "contains utils used across is components and is clients",
   "main": "index.js",
   "scripts": {

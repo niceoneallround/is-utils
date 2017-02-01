@@ -33,6 +33,8 @@ describe('1 Test Create', function () {
 
     let qry = JWTUtils.getPnGraph(valid.decoded);
 
+    qry.should.have.property(PN_P.syndicatedEntity);
+
     qry.should.have.property(PN_P.privacyContext);
     qry[PN_P.privacyContext].should.have.property(PN_P.privacyActionInstance2Deobfuscate);
   }); // 1.2
