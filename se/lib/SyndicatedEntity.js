@@ -235,32 +235,42 @@ class SyndicatedEntity {
     for (let i = 0; i < keys.length; i++) {
 
       let key = keys[i];
-      let keyDesc = this[PN_P.properties][key];
 
-      switch (keyDesc[PN_P.ptype]) {
+      switch (key) {
 
-        case 'string': {
-
-          // find the backing subject
-          let bs = nodeMap.get(keyDesc[PN_P.node]);
-          assert(bs, util.format('Could not find node:%s in subjects:%j', keyDesc[PN_P.node], flattendNodes));
-          rs[key] = bs[keyDesc[PN_P.subjectPropName]];
-          break;
-        }
-
-        case 'object': {
-          assert(false, 'does not support object yet');
-
-          // if a subject query restriction then all nodes are virtual, so may need to create new node
-          // if not already created. See eitemUtils in connector for more.
-          break;
+        case '@id' : {
+          break; // do nothing - note that the jsonld graph processing may had an @id to properties hence need this
         }
 
         default: {
-          assert(false, util.format('key:%s does not support ptype yet', key, keyDesc));
-        }
-      } // switch ptype
-    } // for
+          let keyDesc = this[PN_P.properties][key];
+
+          switch (keyDesc[PN_P.ptype]) {
+
+            case 'string': {
+
+              // find the backing subject
+              let bs = nodeMap.get(keyDesc[PN_P.node]);
+              assert(bs, util.format('Could not find node:%s in subjects:%j', keyDesc[PN_P.node], flattendNodes));
+              rs[key] = bs[keyDesc[PN_P.subjectPropName]];
+              break;
+            }
+
+            case 'object': {
+              assert(false, 'does not support object yet');
+
+              // if a subject query restriction then all nodes are virtual, so may need to create new node
+              // if not already created. See eitemUtils in connector for more.
+              break;
+            }
+
+            default: {
+              assert(false, util.format('key:%s does not support ptype yet', key, keyDesc));
+            }
+          } // switch ptype
+        } // default key
+      } // for
+    }// switch key
 
     return rs;
 
