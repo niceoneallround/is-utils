@@ -85,7 +85,6 @@ For example
 */
 
 const assert = require('assert');
-const JSONLDPromises = require('jsonld-utils/lib/jldUtils').promises;
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
@@ -179,6 +178,72 @@ class SyndicatedEntity {
      Note as the SE contains the @ids of the backing subjects these need to be
      passed in.
 
+     input
+      - type - type wanted can be SubjectQueryRestriction or a PN data Model subject type
+      - data model id - the request data model type
+      - nodeMap - map of backing subjects and embedded objects by @id.
+
+    output
+      - PN data model subject of the passed in type and data model
+
+    process
+     1. create base
+       1.1 If subject restriction node - create a new base node of type sybject restriction
+       1.2 iterate over the flattened subjects to see if one of the requested data model type, if not barf as no base to build
+     2. Iterate over the SE im schema
+  */
+  pnDataModelEntity(type, pnDataModelId, nodeMap, flattendNodes) {
+    assert(type, 'pnDataModelEntity - type param missing');
+    assert(pnDataModelId, 'pnDataModelEntity - pnDataModelId param missing');
+    assert(nodeMap, 'pnDataModelEntity - nodeMap param missing');
+    assert(flattendNodes, 'pnDataModelEntity - flattendNodes param missing');
+
+    let rs;
+    if (type === PN_T.SubjectQueryRestriction) {
+      rs = { '@id': this['@id'], '@type': [PN_T.SubjectQueryRestriction], };
+    } else {
+      assert(false, 'add code to handle no subject restriction');
+    }
+
+    // iterate over properties finding value in backing subject and add
+    let keys = Object.keys(this[PN_P.properties]);
+
+    for (let i = 0; i < keys.length; i++) {
+
+      let key = keys[i];
+      let keyDesc = this[PN_P.properties][key];
+
+      switch (keyDesc[PN_P.ptype]) {
+
+        case 'string': {
+
+          // find the backing subject
+          let bs = nodeMap.get(keyDesc[PN_P.node]);
+          assert(bs, util.format('Could not find node:%s in subjects:%j', keyDesc[PN_P.node], flattendNodes));
+          rs[key] = bs[keyDesc[PN_P.subjectPropName]];
+          break;
+        }
+
+        case 'object': {
+          assert(false, 'does not support object yet');
+          break;
+        }
+
+        default: {
+          assert(false, util.format('key:%s does not support ptype yet', key, keyDesc));
+        }
+      } // switch ptype
+    } // for
+
+    return rs;
+
+  }
+
+  /*
+     Returns a PN Data Model subject from an SE in that same PN Data Model.
+     Note as the SE contains the @ids of the backing subjects these need to be
+     passed in.
+
      The following is performed
      1. Pass in subjects and requested output subject type - either from the PN data model or SubjectRestriction
      2. Flatten the subjects and embedded objects, such as address
@@ -186,7 +251,6 @@ class SyndicatedEntity {
        3.1 If subject restriction node - create a new base node of type sybject restriction
        3.2 iterate over the flattened subjects to see if one of the requested data model type, if not barf as no base to build
     4. Iterate over the SE im schema
-  */
   promisePNDataModelEntity(type, pnDataModelId, subjects) {
     assert(type, 'promisePNDataModelEntity - type param missing');
     assert(pnDataModelId, 'promisePNDataModelEntity - pnDataModelId param missing');
@@ -255,7 +319,7 @@ class SyndicatedEntity {
           reject(err);
         });
     });
-  }
+  }*/
 
 } // class
 
