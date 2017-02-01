@@ -107,6 +107,30 @@ class SyndicatedEntity {
     this[PN_P.subject] = [];
   }
 
+  // create a syndicated entity from a JSON representation
+  // yea could have made operations static but wanted to try this approach as more like java
+  // not sure if keen on it as yet
+  static createFromJSON(se) {
+    assert(se['@id'], util.format('SyndicatedEntity - createFromJSON - @id param missing:%j', se));
+    assert(se[PN_P.pnDataModel], util.format('SyndicatedEntity - createFromJSON - PN_P.pnDataModel param missing:%j', se));
+    assert(se[PN_P.job], util.format('SyndicatedEntity - createFromJSON - PN_P.job param missing:%j', se));
+    assert(se[PN_P.properties], util.format('SyndicatedEntity - createFromJSON - PN_P.properties param missing:%j', se));
+    assert(se[PN_P.subject], util.format('SyndicatedEntity - createFromJSON - PN_P.subject param missing:%j', se));
+
+    let newSE = new SyndicatedEntity('dont-care', {
+      hostname: 'dont-care',
+      pnDataModelId: se[PN_P.pnDataModel],
+      jobId: se[PN_P.job],
+    });
+
+    // fix up
+    newSE['@id'] = se['@id'];
+    newSE[PN_P.properties] = se[PN_P.properties];
+    newSE[PN_P.subject] = se[PN_P.subject];
+
+    return newSE;
+  }
+
   // add a mapped property to the Syndicated entities informatiom model
   addProperty(name, backingSubjectId, subjectPropName, jwtId, optionalParams) {
     assert(name, 'addProperty - name param missing');

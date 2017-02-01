@@ -26,6 +26,27 @@ describe('1 Test Syndicated Entity', function () {
     se.should.have.property(PN_P.properties, {});
   }); // 1.1
 
+  it('1.1a should create a SE from JSON version', function () {
+
+    let se = {
+      '@id': 'abc',
+      '@type': [PN_T.SyndicatedEntity],
+      [PN_P.pnDataModel]: 'dm_id',
+      [PN_P.job]: 'jobId',
+      [PN_P.subject]: ['1', '2'],
+      [PN_P.properties]: { a: '1' },
+    };
+
+    let newSE = SyndicatedEntity.createFromJSON(se);
+    newSE.should.have.property('@id', 'abc');
+    newSE.should.have.property('@type', [PN_T.SyndicatedEntity]);
+    newSE.should.have.property(PN_P.pnDataModel, 'dm_id');
+    newSE.should.have.property(PN_P.job, 'jobId');
+    newSE.should.have.property(PN_P.subject, ['1', '2']);
+    newSE.should.have.property(PN_P.properties,  { a: '1' });
+
+  }); // 1.1a
+
   it('1.2 should be able to add top level properties and update the properties and subjects', function () {
 
     let se = new SyndicatedEntity('id1', props);
