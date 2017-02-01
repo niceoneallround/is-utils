@@ -307,7 +307,7 @@ class RSQuery {
     let syndEnts = [];
 
     let subject = subjects[0];
-    let se = new SyndicatedEntity('canon-se-id-1', {
+    let se = new SyndicatedEntity('test-se-1', {
       hostname: hostname,
       pnDataModelId: pnDataModelId,
       jobId: canonConstants.ALICE_SYNDICATION_JOB_ID,
@@ -316,12 +316,12 @@ class RSQuery {
     se.addProperty('https://schema.org/givenName', // target schema the test referecne source
                 subject['@id'], 'https://schema.org/givenName', 'jwt1-rspquery-canon');
     se.addProperty('https://schema.org/familyName', subject['@id'],
-                'https://schema.org/familyName', 'jwt1-rspquery-canon');
+                'https://schema.org/familyName', 'jwt1-rsquery-canon');
 
     syndEnts.push(se);
 
     subject = subjects[1];
-    se = new SyndicatedEntity('canon-se-id-2', {
+    se = new SyndicatedEntity('test-se-2', {
       hostname: hostname,
       pnDataModelId: pnDataModelId,
       jobId: canonConstants.BOB_SYNDICATION_JOB_ID,
@@ -330,7 +330,7 @@ class RSQuery {
     se.addProperty('https://schema.org/givenName', // target schema the test referecne source
                 subject['@id'], 'https://schema.org/givenName', 'jwt2-rspquery-canon');
     se.addProperty('https://schema.org/familyName', subject['@id'],
-                'https://schema.org/familyName', 'jwt2-rspquery-canon');
+                'https://schema.org/familyName', 'jwt2-rsquery-canon');
 
     syndEnts.push(se);
 
