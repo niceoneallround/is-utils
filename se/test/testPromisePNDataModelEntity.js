@@ -28,6 +28,9 @@ describe('1 Test Promise PN Data Model Entity', function () {
     se.addProperty('https://schema.org/givenName', baseAlice['@id'], BASE_P.givenName, 'jwt1');
     se.addProperty('https://schema.org/familyName', baseAlice['@id'], BASE_P.familyName, 'jwt2');
 
+    // add @id and make sure skipped
+    se.addProperty('@id', baseAlice['@id'], 'dont-care', 'jwt2');
+
     return PromisePNDataModelEntities(PN_T.SubjectQueryRestriction, TestReferenceSourcePNDataModel.model.ID, [baseAlice], [se])
       .then(
         function (subjects) {
