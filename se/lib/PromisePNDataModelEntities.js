@@ -23,6 +23,7 @@
 
 const assert = require('assert');
 const JSONLDPromises = require('jsonld-utils/lib/jldUtils').promises;
+const SyndicatedEntity = require('./SyndicatedEntity');
 
 class promisePNDataModelEntity {
 
@@ -42,9 +43,18 @@ class promisePNDataModelEntity {
               nodeMap.set(flattenedSubjects['@graph'][i]['@id'], flattenedSubjects['@graph'][i]);
             }
 
+            // if the ses are not already Syndicated Entities then create
+            let syndEnts = ses;
+            if (!(ses[0] instanceof SyndicatedEntity)) {
+              syndEnts = [];
+              for (let i = 0; i < ses.length; i++) {
+                syndEnts.push(SyndicatedEntity.createFromJSON(ses[i]));
+              }
+            }
+
             let data = [];
-            for (let i = 0; i < ses.length; i++) {
-              data.push(ses[i].pnDataModelEntity(type, pnDataModelId, nodeMap, flattenedSubjects['@graph']));
+            for (let i = 0; i < syndEnts.length; i++) {
+              data.push(syndEnts[i].pnDataModelEntity(type, pnDataModelId, nodeMap, flattenedSubjects['@graph']));
             }
 
             resolve(data);
