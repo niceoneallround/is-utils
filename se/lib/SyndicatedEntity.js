@@ -226,6 +226,9 @@ class SyndicatedEntity {
 
         case 'object': {
           assert(false, 'does not support object yet');
+
+          // if a subject query restriction then all nodes are virtual, so may need to create new node
+          // if not already created. See eitemUtils in connector for more.
           break;
         }
 
