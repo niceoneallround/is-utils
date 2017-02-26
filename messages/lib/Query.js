@@ -6,22 +6,21 @@ The Query messages is sent from the query agent to the IS using a privacy pipe
 IS queries are a JSON representation of the public input query
 
 
-
 {
-   @id: http://pn.id.webshield.io/query/com/acme#73733737
+   @id: http://pn.id.webshield.io/query/com/acme#73733737 - used for log messages and async return of messages
    @type: https://pn.schema.webshield.io/type#subject_query,
    query_nodes: [
-     { id: blank node id
-       type: queryNode,
-       result_graph_property: 'bob',
-       pn_p.params:{
+     { @id: blank node id
+       @type: queryNode,
+       pn_p.result_graph_property: 'bob',
+       pn_p.params:{ // the query restrictions are run through a privacy algorithm
          @id: ...
          @type: http://pn.schema.webshield.io/type#SubjectQueryRestriction, // note need this type as the privacy algorithm applies to this
          http://pn.schema.webshield.io/prop#subjectID: value
          http://pn.schema.webshield.io/prop#subject_type: value
-         ... other query params
+         ... other query params ...
        },
-       pn_p.properties: {
+       pn_p.properties: // need to think more how to represent - maybe as a json schema or a properitery
         familyName:
         givenName:
         taxID:
@@ -100,25 +99,6 @@ class Query {
 
       qry[PN_P.queryNodes].push(node);
     }
-
-    /*
-
-      [PN_P.params]: {
-        '@id': PNDataModel.ids.createQueryRestrictionId(hostname, nextIdCounter()),
-        '@type': PN_T.SubjectQueryRestriction,
-        [PN_P.subjectID]: 'https://acme.com/customer/7272372',   // the @id of the subject to query for
-        'https://schema.org/givenName': 'bob', // add so can make sure obfuscation works
-      },
-      [PN_P.properties]: {  // note not an array as want to keep shape and also be able to use compact/expand
-        'https://schema.org/familyName': '',
-        'https://schema.org/givenName': '',
-        'https://schema.org/taxID': '',
-        'https://schema.org/address': {
-            'https://schema.org/postalCode': '',
-          },
-      },
-      [PN_P.queryResultGraphProp]: 'bob',
-    };*/
 
     return qry;
   }
