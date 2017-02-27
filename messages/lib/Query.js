@@ -41,6 +41,8 @@ IS queries are a JSON representation of the public input query
 
 const assert = require('assert');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils');
+const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
+const JWTType = require('jwt-utils/lib/jwtUtils').jwtType;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
@@ -172,6 +174,7 @@ class Query {
     return null;
   }
 
+  // create a subject query JWT
   static createJWT(serviceCtx, props) {
     assert(serviceCtx, 'serviceCtx param is missing');
     assert(props, 'props param is missing');
@@ -183,6 +186,74 @@ class Query {
                     props.privacyPipeId,
                     serviceCtx.config.crypto.jwt, { subject: props.query['@id'], });
 
+  }
+
+  //
+  // Validate a subject query JWT
+  //
+  /* OUTPUTs a stucture
+
+      { error: the jwt was somehow invalid so send a bad request to caller,
+        query: the subject query
+        decoded: the decoded JWT}
+  */
+  static validateJWT(serviceCtx, inputJWT) {
+
+    const loggingMD = {
+            ServiceType: serviceCtx.serviceName,
+            FileName: 'isUtils/messages/Query.js', };
+
+    const hostname = serviceCtx.config.getHostname();
+
+    // verify the JWT
+    let result = {};
+    if (serviceCtx.config.VERIFY_JWT) {
+      try {
+        result.decoded = JWTUtils.newVerify(inputJWT, serviceCtx.config.crypto.jwt);
+      } catch (err) {
+        result.error = PNDataModel.errors.createInvalidJWTError({
+                  id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+                  type: PN_T.SubjectQuery, jwtError: err, });
+
+        serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
+                                    action: 'Query-ERROR-JWT-VERIFY',
+                                    inputJWT: inputJWT,
+                                    error: result.error,
+                                    decoded: JWTUtils.decode(inputJWT, { complete: true }),
+                                    jwtError: err, }, loggingMD);
+
+        return result;
+      }
+    }
+
+    if (!result.decoded) {
+      result.decoded = JWTUtils.decode(inputJWT); // decode as may not have verified
+    }
+
+    if (!result.decoded[JWTClaims.PN_JWT_TYPE_CLAIM]) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.PN_JWT_TYPE_CLAIM, result.decoded),
+      });
+
+      return result;
+    }
+
+    if (result.decoded[JWTClaims.PN_JWT_TYPE_CLAIM] !== JWTType.subjectQuery) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR JWT not expected type::%s JWT:%j', JWTType.subjectQuery, result.decoded),
+      });
+
+      return result;
+    }
+
+    // extract the query
+    result.query = JWTUtils.getPnGraph(result.decoded);
+
+    // FIXME add validation checks
+
+    return result;
   }
 
   //----------------

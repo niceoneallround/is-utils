@@ -62,8 +62,19 @@ describe('1 Test Query', function () {
   }); // 1.2
 
   it('1.3 should create a canon in the internal format query ', function () {
-
     let qry = Query.createInternalJSONCanonById();
     qry.should.have.property('@id');
-  }); // 1.2
+  }); // 1.3
+
+  it('1.4 should verify a request JWT and pass back a structure containing decoded and query', function () {
+    let publicJSON = Query.createPublicJSONCanonById(); // use default id
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let jwt = Query.createJWT(dummyServiceCtx, { query: mess, privacyPipeId: 'pipe-1', });
+
+    let result = Query.validateJWT(dummyServiceCtx, jwt);
+    result.should.not.have.property('error');
+    result.should.have.property('decoded');
+    result.should.have.property('query');
+
+  }); // 1.4
 }); // describe 1
