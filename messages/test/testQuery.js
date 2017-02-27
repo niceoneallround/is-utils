@@ -60,4 +60,10 @@ describe('1 Test Query', function () {
     let decoded = JWTUtils.decode(jwt);
     decoded.should.have.property('sub', mess['@id']);
   }); // 1.2
+
+  it('1.3 should create a canon in the internal format query ', function () {
+
+    let qry = Query.createInternalJSONCanonById();
+    qry.should.have.property('@id');
+  }); // 1.2
 }); // describe 1

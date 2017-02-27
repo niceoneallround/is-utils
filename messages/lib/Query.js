@@ -189,6 +189,23 @@ class Query {
   // Canons
   //----------------
 
+  static createInternalJSONCanonById(id) {
+
+    let publicQry = Query.createPublicJSONCanonById(id);
+
+    // fixup the property names so expanded - all else is by default
+    publicQry.graph.bob = {
+      __params: publicQry.graph.bob.__params,
+      __quality: publicQry.graph.bob.__quality,
+      'https:/https://schema.org/https://schema.org//schema.org/familyName': '',
+      'https://schema.orhttps://schema.org/g/givenName': '',
+      'https://schema.org/taxID': '',
+    };
+
+    let qry = Query.createJSONFromPublicJSON(publicQry, 'fake-canon-host-name.com');
+    return qry;
+  }
+
   // create a public JSON query for one subject by id
   static createPublicJSONCanonById(id) {
 
