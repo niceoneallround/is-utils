@@ -1,18 +1,32 @@
 /*jslint node: true, vars: true */
+const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
+const localTestUtils = require('./testUtils').utils;
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
 const PN_T = PNDataModel.TYPE;
+const testUtils = require('node-utils/testing-utils/lib/utils');
 const Query = require('../lib/Query');
 
-describe('1 create JSON messages tests', function () {
+describe('1 Test Query', function () {
   'use strict';
+
+  let dummyServiceCtx;
+
+  before(function (done) {
+    let props = {};
+    props.name = 'test-is-messages';
+    testUtils.createDummyServiceCtx(props, function (ctx) {
+      dummyServiceCtx = ctx;
+      dummyServiceCtx.config = localTestUtils.getTestConfig();
+      done();
+    });
+  });
 
   it('1.1 should create an internal subject query with all the public query information', function () {
 
     let publicJSON = Query.createPublicJSONCanonById(); // use default id
 
     let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
-    console.log(mess);
     mess.should.have.property('@id');
     mess.should.have.property('@type', PN_T.SubjectQuery);
     mess.should.have.property(PN_P.queryNodes);
@@ -36,4 +50,14 @@ describe('1 create JSON messages tests', function () {
       'taxID',
     ]);
   }); // 1.1
+
+  it('1.2 should create a JWT with all the necessary information', function () {
+
+    let publicJSON = Query.createPublicJSONCanonById(); // use default id
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let jwt = Query.createJWT(dummyServiceCtx, { query: mess, privacyPipeId: 'pipe-1', });
+
+    let decoded = JWTUtils.decode(jwt);
+    decoded.should.have.property('sub', mess['@id']);
+  }); // 1.2
 }); // describe 1

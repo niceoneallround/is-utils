@@ -1,7 +1,16 @@
 /*
 
 The public query is sent to the query agent from some party
-The Query messages is sent from the query agent to the IS using a privacy pipe
+The Internal Query messages is sent from the query agent to the IS using a privacy pipe
+
+The query contains
+- the parameters/restriction values
+- the requested graph properties/projection
+
+The parameters are dependent on the domain and are described through a PN Data Model so that
+it is possible to obfuscate them. They are captured in a type called a SubjectQueryRestriction
+that can have any properties. Note the properties need to be able to be expanded so JSONLD compliant
+and also need to be obfuscated by a privacy algorithm.
 
 IS queries are a JSON representation of the public input query
 
@@ -32,6 +41,7 @@ IS queries are a JSON representation of the public input query
 
 const assert = require('assert');
 const JSONLDUtils = require('jsonld-utils/lib/jldUtils');
+const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const moment = require('moment');
 const PNDataModel = require('data-models/lib/PNDataModel');
 const PN_P = PNDataModel.PROPERTY;
@@ -161,6 +171,23 @@ class Query {
 
     return null;
   }
+
+  static createJWT(serviceCtx, props) {
+    assert(serviceCtx, 'serviceCtx param is missing');
+    assert(props, 'props param is missing');
+    assert(props.query, util.format('props.query param is missing:%j', props));
+    assert(props.privacyPipeId, util.format('props.privacyPipeId param is missing:%j', props));
+
+    return JWTUtils.signSubjectQuery(
+                    props.query,
+                    props.privacyPipeId,
+                    serviceCtx.config.crypto.jwt, { subject: props.query['@id'], });
+
+  }
+
+  //----------------
+  // Canons
+  //----------------
 
   // create a public JSON query for one subject by id
   static createPublicJSONCanonById(id) {
