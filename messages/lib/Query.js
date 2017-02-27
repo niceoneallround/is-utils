@@ -188,6 +188,15 @@ class Query {
 
   }
 
+  // The message ack JWT just contains the @id
+  static createMessageAckJWT(serviceCtx, decoded) {
+    assert(serviceCtx, 'serviceCtx param is missing');
+    assert(decoded, 'query param is missing');
+
+    let messageId = decoded[JWTClaims.SUBJECT_QUERY_CLAIM]['@id'];
+    return JWTUtils.signMessageAck(messageId, serviceCtx.config.crypto.jwt);
+  }
+
   //
   // Validate a subject query JWT
   //

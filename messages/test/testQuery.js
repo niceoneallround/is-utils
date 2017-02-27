@@ -1,4 +1,5 @@
 /*jslint node: true, vars: true */
+const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const localTestUtils = require('./testUtils').utils;
 const PNDataModel = require('data-models/lib/PNDataModel');
@@ -76,6 +77,18 @@ describe('1 Test Query', function () {
     result.should.have.property('decoded');
     result.should.have.property('query');
     result.should.have.property('privacyPipeId');
-
   }); // 1.4
+
+  it('1.5 should create an ack message JWT that contains the query id', function () {
+
+    let publicJSON = Query.createPublicJSONCanonById(); // use default id
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let jwt = Query.createJWT(dummyServiceCtx, { query: mess, privacyPipeId: 'pipe-1', });
+    let valid = Query.validateJWT(dummyServiceCtx, jwt);
+
+    let messageAck = Query.createMessageAckJWT(dummyServiceCtx, valid.decoded);
+    let decoded = JWTUtils.decode(messageAck);
+    decoded.should.have.property(JWTClaims.MESSAGE_ACK_ID_CLAIM, valid.decoded[JWTClaims.SUBJECT_QUERY_CLAIM]['@id']);
+  }); // 1.5
+
 }); // describe 1
