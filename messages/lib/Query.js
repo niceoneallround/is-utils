@@ -248,10 +248,31 @@ class Query {
       return result;
     }
 
-    // extract the query
-    result.query = JWTUtils.getPnGraph(result.decoded);
+    // validate privacy pipe claim
+    if (!result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM]) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.PRIVACY_PIPE_CLAIM, result.decoded),
+      });
 
-    // FIXME add validation checks
+      return result;
+    } else {
+      result.privacyPipeId = result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM];
+    }
+
+    // validate subject query exists
+    if (!result.decoded[JWTClaims.SUBJECT_QUERY_CLAIM]) {
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_QUERY_CLAIM, result.decoded),
+      });
+
+      return result;
+    } else {
+      result.query = result.decoded[JWTClaims.SUBJECT_QUERY_CLAIM];
+    }
+
+    // FIXME add query validation checks
 
     return result;
   }

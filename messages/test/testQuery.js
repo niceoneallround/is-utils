@@ -75,6 +75,7 @@ describe('1 Test Query', function () {
     result.should.not.have.property('error');
     result.should.have.property('decoded');
     result.should.have.property('query');
+    result.should.have.property('privacyPipeId');
 
   }); // 1.4
 }); // describe 1
