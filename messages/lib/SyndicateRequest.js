@@ -309,7 +309,7 @@ class SyndicateRequest {
     // Note the suject type is the base subject -  needs to be this to work with the canon privacy step instance
     let subjects = [
       {
-        '@id': 'https://id.webshield.io/io/webshield/test/subject#111',
+        '@id': 'https://id.webshield.io/com/abc/alice_abc', //'https://id.webshield.io/io/webshield/test/subject#111',
         '@type': [
           'https://subject.pn.schema.webshield.io/type#Subject',
           'http://pn.schema.webshield.io/type#PrivacyGraph',
@@ -340,7 +340,7 @@ class SyndicateRequest {
         },
       },
       {
-        '@id': 'https://id.webshield.io/io/webshield/test/subject#222',
+        '@id': 'https://id.webshield.io/com/abc/bob_abc', //'https://id.webshield.io/io/webshield/test/subject#222',
         '@type': [
           'https://subject.pn.schema.webshield.io/type#Subject',
           'http://pn.schema.webshield.io/type#PrivacyGraph',
