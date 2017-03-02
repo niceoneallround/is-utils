@@ -24,6 +24,7 @@ describe('1 Test Syndicated Entity', function () {
     se.should.have.property(PN_P.job, 'jobId');
     se.should.have.property(PN_P.subject, []);
     se.should.have.property(PN_P.properties, {});
+    se.should.have.property(PN_P.subjectLinkJWT);
   }); // 1.1
 
   it('1.1a should create a SE from JSON version', function () {
@@ -35,6 +36,7 @@ describe('1 Test Syndicated Entity', function () {
       [PN_P.job]: 'jobId',
       [PN_P.subject]: ['1', '2'],
       [PN_P.properties]: { a: '1' },
+      [PN_P.subjectLinkJWT]: ['fake'],
     };
 
     let newSE = SyndicatedEntity.createFromJSON(se);
@@ -44,6 +46,7 @@ describe('1 Test Syndicated Entity', function () {
     newSE.should.have.property(PN_P.job, 'jobId');
     newSE.should.have.property(PN_P.subject, ['1', '2']);
     newSE.should.have.property(PN_P.properties,  { a: '1' });
+    newSE.should.have.property(PN_P.subjectLinkJWT);
 
   }); // 1.1a
 

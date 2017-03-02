@@ -74,7 +74,9 @@ describe('1 Test Promise PN Data Model Entity', function () {
                 'http://pn.schema.webshield.io/prop#node': 'https://id.webshield.io/com/abc/alice_abc',
                 'https://pn.schema.webshield.io/prop#subject_prop_name': 'https://schema.org/familyName',
                 'http://pn.schema.webshield.io/prop#jwt': 'jwt2', }, },
-        'http://pn.schema.webshield.io/prop#subject': ['https://id.webshield.io/com/abc/alice_abc'], };
+        'http://pn.schema.webshield.io/prop#subject': ['https://id.webshield.io/com/abc/alice_abc'],
+        'https://pn.schema.webshield.io/prop#subject_link_JWT': ['fake-link-jwt'],
+      };
 
     return PromisePNDataModelEntities(PN_T.SubjectQueryRestriction, TestReferenceSourcePNDataModel.model.ID, [baseAlice], [seJSON])
       .then(

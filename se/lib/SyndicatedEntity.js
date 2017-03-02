@@ -6,14 +6,28 @@ A Syndicated Entity is a virtual subject that is manufactured from a set of back
 - The syndicated entities properties represent one schema from either the ISIM or a participants PN Data Model.
 - the backing subjects have @ids that represent entities in the real world, and @type and properties from Participants PN Data models.
 
+A syndicated entity represents a linked subject graph and associated metadata. It can represent data from one or more source subjects.
+Tt contains the following information:
+1.	An information model that describes how to create an output graph from the underlying source subject graphs. The information model contains
+  a.	An array of SE properties, these is a pointer to the relevant subject and attribute that is the source of the data. These contain
+    a.1 These contain the unique identifier of <relevant subject @id, JWT-ID> to identify the subject,
+    a.2 the source property name.
+    2.3 Note may be a top level or embedded (postal address) object
+  b.	The SE properties can be from any data model
+  c.	If the SE property is part of the common identity model, then it will have been mapped such that they it is in the requested data model format.
+  d.	The @id is fabricated by the IS, and the @type is syndicated entity
+  e.	The real @id if generate a graph from it.
+  f.	The source subject graphs – this is a combination of the @id and the JWT id. Note these include
+  g. Link Credentials - If more than If more than one source subject used to create the SE, then the relevant link credential JWTs that described why source graphs are linked is included.
+
 
 A syndicated entity has the following properties - note it can be transported across the wire.
 - @id - globally unqiue id
 -	@type: pn_t.ISSyndicatedSubject
+- pn_p.job_id: the identity syndicate job id or query id that produced the syndicated entity
 -	pn_p.properties: the SE properties
-- pn_p.subject: The array of backing subject ids - this is pulled from the information model
-- job_id: the identity syndicate job id that produced the syndicated entity
--	Future can add linking information
+- pn_p.subject: The array of backing subjects. Note if a specific subject @id has more than one JWT it will have been merged into one, which is ok as same object from same person.
+-	pn_p.subject_link_JWTs: an array of subject link credentials JWTs
 
 The following shows the properties mapping of scalar top level values and a scalar embedded object
 
@@ -105,6 +119,7 @@ class SyndicatedEntity {
     this[PN_P.job] =  props.jobId;
     this[PN_P.properties] = {};
     this[PN_P.subject] = [];
+    this[PN_P.subjectLinkJWT] = [];
   }
 
   // create a syndicated entity from a JSON representation
@@ -116,6 +131,7 @@ class SyndicatedEntity {
     assert(se[PN_P.job], util.format('SyndicatedEntity - createFromJSON - PN_P.job param missing:%j', se));
     assert(se[PN_P.properties], util.format('SyndicatedEntity - createFromJSON - PN_P.properties param missing:%j', se));
     assert(se[PN_P.subject], util.format('SyndicatedEntity - createFromJSON - PN_P.subject param missing:%j', se));
+    assert(se[PN_P.subjectLinkJWT], util.format('SyndicatedEntity - createFromJSON - PN_P.subjectLinkJWT param missing:%j', se));
 
     let newSE = new SyndicatedEntity('dont-care', {
       hostname: 'dont-care',
@@ -127,6 +143,7 @@ class SyndicatedEntity {
     newSE['@id'] = se['@id'];
     newSE[PN_P.properties] = se[PN_P.properties];
     newSE[PN_P.subject] = se[PN_P.subject];
+    newSE[PN_P.subjectLinkJWT] = se[PN_P.subjectLinkJWT];
 
     return newSE;
   }
@@ -195,6 +212,13 @@ class SyndicatedEntity {
       [PN_P.subjectPropName]: embedSubPropName,
       [PN_P.jwt]: jwtId,
     };
+  }
+
+  /*
+    Add a subject link JWT that represents the linking of the base object with another object
+  */
+  addSubjectLinkJWT(subjectLinkJWT) {
+    this[PN_P.subjectLinkJWT].push(subjectLinkJWT);
   }
 
   /*
