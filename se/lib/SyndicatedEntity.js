@@ -215,10 +215,10 @@ class SyndicatedEntity {
   }
 
   /*
-    Add a subject link JWT that represents the linking of the base object with another object
+    Add a subject link JWTID that represents the linking of the base object with another object
   */
-  addSubjectLinkJWT(subjectLinkJWT) {
-    this[PN_P.subjectLinkJWT].push(subjectLinkJWT);
+  addSubjectLinkJWTID(subjectLinkJWTID) {
+    this[PN_P.subjectLinkJWT].push(subjectLinkJWTID);
   }
 
   /*

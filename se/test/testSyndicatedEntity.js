@@ -36,7 +36,7 @@ describe('1 Test Syndicated Entity', function () {
       [PN_P.job]: 'jobId',
       [PN_P.subject]: ['1', '2'],
       [PN_P.properties]: { a: '1' },
-      [PN_P.subjectLinkJWT]: ['fake'],
+      [PN_P.subjectLinkJWT]: ['fakeJWTId'],
     };
 
     let newSE = SyndicatedEntity.createFromJSON(se);
@@ -101,5 +101,12 @@ describe('1 Test Syndicated Entity', function () {
 
     se.should.have.property(PN_P.subject, []);
   }); // 1.3
+
+  it('1.4 should be able to subject link JWT id', function () {
+
+    let se = new SyndicatedEntity('id1', props);
+    se.addSubjectLinkJWTID('jwtId1');
+    se.should.have.property(PN_P.subjectLinkJWT, ['jwtId1']);
+  }); // 1.4
 
 }); // describe 1
