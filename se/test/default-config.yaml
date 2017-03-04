@@ -1,0 +1,35 @@
+#
+# This file contains config needed for the JWTs in the tests
+#
+#
+# Standard config file for a connector.
+#
+version: '1'
+'test-is-se':
+  DOMAIN_NAME: rs.test.webshield.io #the domain name (CNAME) the service should be using, can be overriden by an env
+  LISTEN_PORT: 8080 # the listen port, can be overriden by an env
+  LISTEN_PORT_INSIDE_DOCKER: 8080 # FIXME look at
+  api_gateway:
+    url: # can be overridden by env API_GATEWAY_URL
+    webshield_api_key: # can be overridden by env WEBSHIELD_API_KEY
+  privacy_agent:
+    id: https://md.pn.id.webshield.io/reference_source/io/webshield/test/rs#test-rs-docker
+  metadata:
+    skip_startup_create: false  # can be overridden by an env SKIP_STARTUP_CREATE_METADATA
+  terminate_tls:
+    enabled: false
+    certificate_file: 'add-default-file'
+    private_key_file: 'add-default-file'
+  jwt:
+    signer: # issuer is the DOMAIN_NAME
+      alg: 'RS256' # see https://www.rfc-editor.org/rfc/rfc7518.txt - supported are 'HS256 or RS256 from JWS specification'
+      RS256: # code is rooted in node_modules/connector-utils/config/lib hence need to move up
+        certificate_file: '../../../../messages/test/test-jwt-rsa.x509crt'
+        public_key_file: '../../../../messages/test/test-jwt-rsa-public.pem'
+        private_key_file: '../../../../messages/test/test-jwt-rsa-private.pem'
+      HS256:
+        secret: bogus_test_secret #the secret to use for signing if using hs256 - shoud only use for testing, can be overridden by JWT_SECRET'
+    verifier:
+      enabled: true # can be overridden by JWT_VERFIY
+      HS256:
+        secret: bogus_test_secret
