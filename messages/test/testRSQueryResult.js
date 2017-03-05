@@ -38,9 +38,10 @@ describe('1 Test Validate', function () {
       '@id': 'fake-query',
       '@type': [PN_T.RSSubjectQueryResult],
       [PN_P.respondingTo]: 'id-1', };
+
     let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: dummyServiceCtx.config.DOMAIN_NAME, });
     let aliceJWT = JWTUtils.signSubject(
-        alice, pnDataModelId, syndicationId, dummyServiceCtx.config.crypto.jwt, { subject: alice['@id'], });
+        alice, pnDataModelId, syndicationId, dummyServiceCtx.config.crypto.jwt, { subject: alice['@id'], privacyPipe: privacyPipeId, });
 
     let aliceLink = {
       '@id': PNDataModel.ids.createSubjectLinkId('fake.com', 'link-1'), // note the RSPA will convert to a URL

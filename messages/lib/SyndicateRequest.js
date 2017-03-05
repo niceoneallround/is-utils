@@ -379,7 +379,8 @@ class SyndicateRequest {
                       pnDataModelId,
                       syndicationId,
                       serviceCtx.config.crypto.jwt,
-                      { subject: subjects[i]['@id'], })
+                      { subject: subjects[i]['@id'],
+                        privacyPipe: privacyPipeId, })
                     );
     }
 

@@ -341,12 +341,12 @@ class RSQueryResult {
     let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: serviceCtx.config.DOMAIN_NAME, });
     let aliceJWT = JWTUtils.signSubject(
         alice, pnDataModelId, canonConstants.ALICE_SYNDICATION_JOB_ID,
-        serviceCtx.config.crypto.jwt, { subject: alice['@id'], });
+        serviceCtx.config.crypto.jwt, { subject: alice['@id'], privacyPipe: privacyPipeId, });
 
     let bob = TestReferenceSourcePNDataModel.canons.createBob({ domainName: serviceCtx.config.DOMAIN_NAME, });
     let bobJWT = JWTUtils.signSubject(
         alice, pnDataModelId, canonConstants.BOB_SYNDICATION_JOB_ID,
-        serviceCtx.config.crypto.jwt, { subject: bob['@id'], });
+        serviceCtx.config.crypto.jwt, { subject: bob['@id'], privacyPipe: privacyPipeId, });
 
     //
     // create links credentials
