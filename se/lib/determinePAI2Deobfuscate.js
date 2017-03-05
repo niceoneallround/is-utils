@@ -34,7 +34,6 @@ function execute(serviceCtx, ses, jwts) {
   for (let i = 0; i < jwts.length; i++) {
     let decoded = JWTUtils.decode(jwts[i]);
     if (decoded[JWTClaims.PN_JWT_TYPE_CLAIM] === JWTType.subject) {
-      console.log(decoded);
       JWTIdMap.set(decoded[JWTClaims.JWT_ID_CLAIM], decoded);
     }
   }
@@ -72,7 +71,6 @@ function execute(serviceCtx, ses, jwts) {
                     decodedJWT,
                     property[PN_P.subjectPropName]);
 
-          console.log(v);
           if (PNObfuscatedValue.isOV(v)) {
             let paiId = v['@type'];
             if (!paiAlreadyIncluded.get(paiId)) {
