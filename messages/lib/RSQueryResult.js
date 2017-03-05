@@ -338,12 +338,28 @@ class RSQueryResult {
       '@type': [PN_T.RSSubjectQueryResult],
       [PN_P.respondingTo]: respondingTo, };
 
+    // Note the data should be encypted as passing from the rspa to the IS - but as test data only
+    // used for sub systems tests only encrypt taxID for now add the rest later - this is taken from the
+    // rspa log so valid.
     let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    alice['https://schema.org/taxID'] = {
+      '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/rs#rspa-paction1488493433-1',
+      '@value': '3AtEhwBZxE858c15..lvmfA2gx7Ea1B6c5k1JL0YnKxgue5hAhj47gL64=',
+    };
+
     let aliceJWT = JWTUtils.signSubject(
         alice, pnDataModelId, canonConstants.ALICE_SYNDICATION_JOB_ID,
         serviceCtx.config.crypto.jwt, { subject: alice['@id'], privacyPipe: privacyPipeId, });
 
+    // Note the data should be encypted as passing from the rspa to the IS - but as test data only
+    // used for sub systems tests only encrypt taxID for now add the rest later - this is taken from the
+    // rspa log so valid.
     let bob = TestReferenceSourcePNDataModel.canons.createBob({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    bob['https://schema.org/taxID'] = {
+      '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/rs#rspa-paction1488493433-1',
+      '@value': 'TOI6mjg/63U8cyLt../Mw19A2Oo7atBxJr+6gFDCGRo/FBHVCyipiu',
+    };
+
     let bobJWT = JWTUtils.signSubject(
         alice, pnDataModelId, canonConstants.BOB_SYNDICATION_JOB_ID,
         serviceCtx.config.crypto.jwt, { subject: bob['@id'], privacyPipe: privacyPipeId, });

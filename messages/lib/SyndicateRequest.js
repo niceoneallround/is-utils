@@ -274,6 +274,8 @@ class SyndicateRequest {
 
   //
   // Create a canon syndicate rqeuest JWT that can be used for testing
+  // NOTE this is the message sent from the ingest agent to the IS so the
+  // fields are encoded.
   // props.userTag - optional
   // props.isa - optional
   // props.privacyPipeId - optional
