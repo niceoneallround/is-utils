@@ -56,13 +56,14 @@ function execute(serviceCtx, ses, jwts) {
   for (let i = 0; i < ses.length; i++) {
     properties = ses[i][PN_P.properties];
     propKeys = Object.keys(properties);
-    console.log('***propKeys', propKeys);
+
+    //console.log('***propKeys', propKeys);
 
     for (let j = 0; j < propKeys.length; j++) {
       property = properties[propKeys[j]];
       decodedJWT = JWTIdMap.get(property[PN_P.jwt]);
 
-      console.log('***property', property);
+      //console.log('***property', property);
 
       switch (property[PN_P.ptype]) {
 
