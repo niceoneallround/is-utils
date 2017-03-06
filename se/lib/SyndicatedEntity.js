@@ -131,7 +131,6 @@ class SyndicatedEntity {
     assert(se[PN_P.job], util.format('SyndicatedEntity - createFromJSON - PN_P.job param missing:%j', se));
     assert(se[PN_P.properties], util.format('SyndicatedEntity - createFromJSON - PN_P.properties param missing:%j', se));
     assert(se[PN_P.subject], util.format('SyndicatedEntity - createFromJSON - PN_P.subject param missing:%j', se));
-    assert(se[PN_P.subjectLinkJWT], util.format('SyndicatedEntity - createFromJSON - PN_P.subjectLinkJWT param missing:%j', se));
 
     let newSE = new SyndicatedEntity('dont-care', {
       hostname: 'dont-care',
@@ -143,7 +142,13 @@ class SyndicatedEntity {
     newSE['@id'] = se['@id'];
     newSE[PN_P.properties] = se[PN_P.properties];
     newSE[PN_P.subject] = se[PN_P.subject];
-    newSE[PN_P.subjectLinkJWT] = se[PN_P.subjectLinkJWT];
+
+    // Not all syndicated entities have links so only copy if there
+    if (se[PN_P.subjectLinkJWT]) {
+      newSE[PN_P.subjectLinkJWT] = se[PN_P.subjectLinkJWT];
+    } else {
+      newSE[PN_P.subjectLinkJWT] = [];
+    }
 
     return newSE;
   }
