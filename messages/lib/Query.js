@@ -18,6 +18,7 @@ IS queries are a JSON representation of the public input query
 {
    @id: http://pn.id.webshield.io/query/com/acme#73733737 - used for log messages and async return of messages
    @type: https://pn.schema.webshield.io/type#subject_query,
+   pn_p.query_privacy_agent: the @id of the query privacy agent making the request, used to get provision and callback URL
    query_nodes: [
      { @id: blank node id
        @type: queryNode,
@@ -64,9 +65,15 @@ function nextIdCounter() {
 
 class Query {
 
-  static createJSONFromPublicJSON(publicQry, hostname) {
+  /**
+    creates the query that is sent to the IS from the public qry format
+    and extra parameters
+  */
+  static createJSONFromPublicJSON(publicQry, hostname, props) {
     assert(hostname, 'createJSONFromPublicJSON hostname param is missing');
     assert(publicQry, 'createJSONFromPublicJSON hostname param is missing');
+    assert(props, 'createJSONFromPublicJSON props param missing');
+    assert(props.qpaId, util.format('createJSONFromPublicJSON  props.qpaId param is missing:%j', props));
 
     let err = Query.validatePublicJSON(publicQry, hostname);
     if (err) {
@@ -76,6 +83,7 @@ class Query {
     let qry = {
       '@id': PNDataModel.ids.createQueryId(hostname, publicQry.id),
       '@type': PN_T.SubjectQuery,
+      [PN_P.queryPrivacyAgent]: props.qpaId,
       [PN_P.queryNodes]: [],
     };
 
@@ -295,9 +303,13 @@ class Query {
   // Canons
   //----------------
 
-  static createInternalJSONCanonById(id) {
+  /**
+    @param props.subjectId - optional
+    @param props.qpaId - optional
+  */
+  static createInternalJSONCanonById(props) {
 
-    let publicQry = Query.createPublicJSONCanonById(id);
+    let publicQry = Query.createPublicJSONCanonById(props);
 
     // fixup the property names so expanded - all else is by default
     publicQry.graph.bob = {
@@ -309,16 +321,21 @@ class Query {
       'https://schema.org/taxID': '',
     };
 
-    let qry = Query.createJSONFromPublicJSON(publicQry, 'fake-canon-host-name.com');
+    let qpaId = 'canon-default-id';
+    if ((props) && (props.qpaId)) {
+      qpaId = props.qpaId;
+    }
+
+    let qry = Query.createJSONFromPublicJSON(publicQry, 'fake-canon-host-name.com', { qpaId: qpaId, });
     return qry;
   }
 
   // create a public JSON query for one subject by id
-  static createPublicJSONCanonById(subId) {
+  static createPublicJSONCanonById(props) {
 
     let subjectId = 'https://fake.com/subjectId';
-    if (subId) {
-      subjectId = subId;
+    if ((props) && (props.subjectId)) {
+      subjectId = props.subjectId;
     }
 
     // this is query by an id

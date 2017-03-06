@@ -12,6 +12,7 @@ describe('1 Test Query', function () {
   'use strict';
 
   let dummyServiceCtx;
+  const createProps = { qpaId: 'test-id', };
 
   before(function (done) {
     let props = {};
@@ -27,9 +28,10 @@ describe('1 Test Query', function () {
 
     let publicJSON = Query.createPublicJSONCanonById(); // use default id
 
-    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com', createProps);
     mess.should.have.property('@id');
     mess.should.have.property('@type', PN_T.SubjectQuery);
+    mess.should.have.property(PN_P.queryPrivacyAgent, 'test-id');
     mess.should.have.property(PN_P.queryNodes);
     mess[PN_P.queryNodes].length.should.be.equal(1);
 
@@ -55,7 +57,7 @@ describe('1 Test Query', function () {
   it('1.2 should create a JWT with all the necessary information', function () {
 
     let publicJSON = Query.createPublicJSONCanonById(); // use default id
-    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com', createProps);
     let jwt = Query.createJWT(dummyServiceCtx, { query: mess, privacyPipeId: 'pipe-1', });
 
     let decoded = JWTUtils.decode(jwt);
@@ -69,7 +71,7 @@ describe('1 Test Query', function () {
 
   it('1.4 should verify a request JWT and pass back a structure containing decoded and query', function () {
     let publicJSON = Query.createPublicJSONCanonById(); // use default id
-    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com', createProps);
     let jwt = Query.createJWT(dummyServiceCtx, { query: mess, privacyPipeId: 'pipe-1', });
 
     let result = Query.validateJWT(dummyServiceCtx, jwt);
@@ -82,7 +84,7 @@ describe('1 Test Query', function () {
   it('1.5 should create an ack message JWT that contains the query id', function () {
 
     let publicJSON = Query.createPublicJSONCanonById(); // use default id
-    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com');
+    let mess = Query.createJSONFromPublicJSON(publicJSON, 'fakehostname.com', createProps);
     let jwt = Query.createJWT(dummyServiceCtx, { query: mess, privacyPipeId: 'pipe-1', });
     let valid = Query.validateJWT(dummyServiceCtx, jwt);
 
