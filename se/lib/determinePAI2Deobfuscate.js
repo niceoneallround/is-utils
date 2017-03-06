@@ -18,7 +18,7 @@ const util = require('util');
  @param serviceCtx
  @param ses - array of the syndicated entities to process
  @param jwts array of JWTs used to build all the SE
- @return an Array of unique <privacy_pipe_id, privacy_action_instance_id>.
+ @return an Array of unique <ppId, paiId>.
 
 */
 function execute(serviceCtx, ses, jwts) {
@@ -33,6 +33,7 @@ function execute(serviceCtx, ses, jwts) {
   let JWTIdMap = new Map();
   for (let i = 0; i < jwts.length; i++) {
     let decoded = JWTUtils.decode(jwts[i]);
+    assert(decoded, util.format('DetereminePAI2Deobfuscate could not decode JWT:%s', jwts[i]));
     if (decoded[JWTClaims.PN_JWT_TYPE_CLAIM] === JWTType.subject) {
       JWTIdMap.set(decoded[JWTClaims.JWT_ID_CLAIM], decoded);
     }
