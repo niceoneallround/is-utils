@@ -1,10 +1,16 @@
 /*jslint node: true, vars: true */
 /*
 
-A Syndicated Entity is a virtual subject that is manufactured from a set of backing PN Data Model subjects that all represent the same subject.
+A Syndicated Entity is a virtual subject that is manufactured from a set of backing subjects that all represent the same subject as attested
+by trusted link credentials.
 - It has an @id manufactured by the IS, and @type SyndicatedEnity.
-- The syndicated entities properties represent one schema from either the ISIM or a participants PN Data Model.
+- The syndicated entities properties are represented by an information model that describes
+   - the name may be simple of embedded
+   - the source backing object by @id
+   - the name in the source backing object, may be simple or embedded
+   - the source JWT ID - note the backing object may be a merge of subject data wuth that @id as a party may have submitted more that one JWT for ths subject
 - the backing subjects have @ids that represent entities in the real world, and @type and properties from Participants PN Data models.
+   - note a backing subject is a marge of all graphs with the same @id and @type - so may come from more than one source JWT
 
 A syndicated entity represents a linked subject graph and associated metadata. It can represent data from one or more source subjects.
 Tt contains the following information:

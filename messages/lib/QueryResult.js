@@ -10,9 +10,9 @@ For each query node it contains the following information
 
 The query result is wrapped in a JWT
 - QUERY_CLAIM - contains the query result
-- SUBJECT_CLAIM - array of subjects used in the query result. For each unique subject @id it contains all the properties for that subject.
-  Note it may itself come from > 1 source subject and JWTs the only think that is common is they all have the same @id and the same @type.
-  Note the syndicated entity can be unpacked to find the actual source JWT using the JWT Id.
+- SUBJECT_JWTS_CLAIM - array of subjects JWTs used in the query result.
+  - This may be the original JWT if all fields can be sent
+  - This may be a IS manufactured JWT one if only some of the fields can be sent
 - PRIVACY_PIPE_CLAIM
 - JWT_TYPE_CLAIM
 - JWT_ID_CLAIM
@@ -68,7 +68,7 @@ class QueryResult {
     assert(props.queryPrivacyAgentId, util.format('props.queryPrivacyAgentId param is missing:%j', props));
     assert(props.queryId, util.format('props.queryId param is missing:%j', props));
     assert(props.queryResultNodes, util.format('props.queryResultNodes param is missing:%j', props));
-    assert(props.subjects, util.format('props.subjects param is missing:%j', props));
+    assert(props.subjectJWTs, util.format('props.subjectJWTs param is missing:%j', props));
     assert(props.privacyPipeId, util.format('props.privacyPipeId param is missing:%j', props));
 
     let queryResult = {
@@ -80,7 +80,7 @@ class QueryResult {
 
     return JWTUtils.signSubjectQueryResult(
             queryResult,
-            props.subjects,
+            props.subjectJWTs,
             props.privacyPipeId,
             serviceCtx.config.crypto.jwt, { subject: queryResult['@id'], });
   }
@@ -164,7 +164,7 @@ class QueryResult {
       return result;
     }
 
-    if (!result.decoded[JWTClaims.SUBJECT_CLAIM]) { // holds result
+    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) { // holds result
       result.error = PNDataModel.errors.createTypeError({
         id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
         errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_CLAIM, result.decoded),
@@ -183,6 +183,34 @@ class QueryResult {
       return result;
     } else {
       result.privacyPipeId = result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM];
+    }
+
+    //
+    // verify the subject JWTS
+    //
+    result.subjectJWTs = result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM];
+    result.decodedSubjectJWTs = [];
+    if (serviceCtx.config.VERIFY_JWT) {
+      for (let i = 0; i < result.subjectJWTs.length; i++) {
+        try {
+          result.decodedSubjectJWTs.push(JWTUtils.newVerify(result.subjectJWTs[i], serviceCtx.config.crypto.jwt));
+        } catch (err) {
+
+          result.badRequest = PNDataModel.errors.createInvalidJWTError({
+                    id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+                    type: PN_T.RSSubjectQueryResult, jwtError: err, });
+
+          serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
+                                      action: 'RsQuery-Result-ERROR-JWT-VERIFY-OF-SUBJECT_JWTs',
+                                      query: result.query['@id'],
+                                      inputJWT: inputJWT,
+                                      error: result.subjectJWTs[i],
+                                      decoded: JWTUtils.decode(result.subjectJWTs[i], { complete: true }),
+                                      jwtError: err, }, loggingMD);
+
+          return result;
+        }
+      }
     }
 
     return result;
