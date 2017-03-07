@@ -2,6 +2,9 @@
 const JWTClaims = require('jwt-utils/lib/jwtUtils').claims;
 const JWTUtils = require('jwt-utils/lib/jwtUtils').jwtUtils;
 const localTestUtils = require('./testUtils').utils;
+const PNDataModel = require('data-models/lib/PNDataModel');
+const PN_P = PNDataModel.PROPERTY;
+const PN_T = PNDataModel.TYPE;
 const QueryResult = require('../lib/QueryResult');
 const TestReferenceSourcePNDataModel = require('data-models/lib/TestReferenceSourcePNDataModel');
 const testUtils = require('node-utils/testing-utils/lib/utils');
@@ -55,5 +58,25 @@ describe('1 Test Query Result', function () {
     let decoded = JWTUtils.decode(messageAck);
     decoded.should.have.property(JWTClaims.MESSAGE_ACK_ID_CLAIM, validated.decoded[JWTClaims.SUBJECT_QUERY_RESULT_CLAIM]['@id']);
   }); // 1.2
+
+  it('1.3 should return a canon queryResultJWT', function () {
+    let queryResultJWT = QueryResult.createCanonJWT(dummyServiceCtx);
+    let validated = QueryResult.validateJWT(dummyServiceCtx, queryResultJWT);
+    validated.should.not.have.property('error');
+  }); // 1.3
+
+  it('1.4 should return query result node', function () {
+    const qnProps = {
+      queryNode: { '@id': 'canon-qry-node-id', [PN_P.queryResultGraphProp]: 'bob', },
+      ses: ['resultGraph'],
+    };
+
+    let queryNode = QueryResult.createQueryResultNode(qnProps);
+    queryNode.should.have.property('@id');
+    queryNode.should.have.property('@type', [PN_T.QueryResultNode]);
+    queryNode.should.have.property(PN_P.respondingTo, 'canon-qry-node-id');
+    queryNode.should.have.property(PN_P.queryResultGraphProp, 'bob');
+    queryNode.should.have.property(PN_P.syndicatedEntity, ['resultGraph']);
+  }); // 1.3
 
 }); // describe 1

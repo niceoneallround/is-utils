@@ -28,7 +28,7 @@ An example query result node
      { @id: blank node id
        @type: queryNodeResult,
        pn_p.result_graph_property: 'bob',
-       pn_p.query_node: the @id of the query node this result is for
+       pn_p.responding_to: the @id of the query node this result is for
        pn_p.syndicated_entity: [ array of syndicate entities for this node]
      }
   ]
@@ -225,6 +225,125 @@ class QueryResult {
     return JWTUtils.signMessageAck(messageId, serviceCtx.config.crypto.jwt);
   }
 
+  /**
+    convenience routine for creating a query result node
+    @param props the props needed to populate
+  */
+  static createQueryResultNode(props) {
+    assert(props, 'props param missing');
+    assert(props.queryNode, util.format('props.queryNode param is missing'));
+    assert(props.ses, util.format('props.ses param is missing'));
+
+    return {
+      '@id': '_:qrn-' + nextIdCounter(),
+      '@type': [PN_T.QueryResultNode],
+      [PN_P.respondingTo]: props.queryNode['@id'],
+      [PN_P.queryResultGraphProp]: props.queryNode[PN_P.queryResultGraphProp],
+      [PN_P.syndicatedEntity]: props.ses,
+    };
+
+  }
+
+  //
+  // Create a canon QueryResult JWT that can be used for testing
+  // props.respondingTo - optional
+  // props.pnDataModelId - optional
+  // props.privacyPipeId - optional
+  static createCanonJWT(serviceCtx, props) {
+    assert(serviceCtx, 'serviceCtx param is missing');
+
+    // as only used for canon that is used in testing put these here
+    const SyndicateRequest = require('./SyndicateRequest');
+    const RSQueryResult = require('./RSQueryResult');
+    const SyndicatedEntity = require('../../se/lib/SyndicatedEntity');
+
+    let respondingTo = 'canon-id-1';
+    if ((props) && (props.respondingTo)) {
+      respondingTo = props.respondingTo;
+    }
+
+    let pnDataModelId = 'canon-pnDataModelId-1';
+    if ((props) && (props.pnDataModelId)) {
+      pnDataModelId = props.pnDataModelId;
+    }
+
+    let privacyPipeId = 'canon-ppId-1';
+    if ((props) && (props.privacyPipeId)) {
+      privacyPipeId = props.privacyPipeId;
+    }
+
+    // Create the query result node
+
+    let backingSubjectJWTs = [];
+
+    //
+    // create a result graph that can be used for the test
+    // using the subject data from the test messages
+    //
+    let syndicateJWT = SyndicateRequest.createCanonJWT(serviceCtx);
+    let decoded = JWTUtils.decode(syndicateJWT);
+    let subjectJWTs = decoded[JWTClaims.SUBJECT_JWTS_CLAIM];
+    let decodedAliceSubjectJWT = JWTUtils.decode(subjectJWTs[0]); // should be base source alice
+    backingSubjectJWTs.push(subjectJWTs[0]);
+
+    // add reference source
+    let rsQueryResultJWT = RSQueryResult.createCanonJWT(serviceCtx);
+    let decodedQueryResult = JWTUtils.decode(rsQueryResultJWT);
+    let linkSubjectJWTs = decodedQueryResult[JWTClaims.SUBJECT_JWTS_CLAIM];
+    let decodedAliceLinkSubjectJWT = JWTUtils.decode(linkSubjectJWTs[0]); // should be reference source alice
+    backingSubjectJWTs.push(linkSubjectJWTs[0]);
+
+    let resultGraph = new SyndicatedEntity(1, {
+      hostname: 'canon-fake-domain-name',
+      pnDataModelId: pnDataModelId,
+      jobId: respondingTo,
+    });
+
+    // add givenName and familName from subject
+    resultGraph.addProperty('https://schema.org/givenName', // graph name
+                    decodedAliceSubjectJWT.sub, // source subject
+                    'https://schema.org/givenName', // source subject property name
+                    decodedAliceSubjectJWT[JWTClaims.JWT_ID_CLAIM]); // source JWT_ID
+
+    resultGraph.addProperty('https://schema.org/familyName', // graph name
+                    decodedAliceSubjectJWT.sub, // source subject
+                    'https://schema.org/familyName', // source subject property name
+                    decodedAliceSubjectJWT[JWTClaims.JWT_ID_CLAIM]); // source JWT_ID
+
+    // add taxId from reference source
+    resultGraph.addProperty('https://schema.org/taxID', // graph name
+                    decodedAliceLinkSubjectJWT.sub, // source subject
+                    'https://schema.org/taxID', // source subject property name
+                    decodedAliceLinkSubjectJWT[JWTClaims.JWT_ID_CLAIM]); // source JWT_ID
+
+    // add the link credential
+    let linkCredentialJWTs = decodedQueryResult[JWTClaims.SUBJECT_LINK_JWTS_CLAIM];
+    let decodedAliceLinkCredentialJWT = JWTUtils.decode(linkCredentialJWTs[0]); // should be alice
+    resultGraph.addSubjectLinkJWTID(decodedAliceLinkCredentialJWT[JWTClaims.JWT_ID_CLAIM]);
+
+    const qnProps = {
+      queryNode: { '@id': 'canon-qry-node-id', [PN_P.queryResultGraphProp]: 'bob', },
+      ses: [resultGraph],
+    };
+
+    let queryNode = QueryResult.createQueryResultNode(qnProps);
+
+    const createProps = {
+        queryPrivacyAgentId: 'canon-qpaId',
+        queryId: 'canon-query-result-id',
+        queryResultNodes: [queryNode],
+        subjectJWTs: backingSubjectJWTs,
+        privacyPipeId: privacyPipeId,
+      };
+
+    let queryResultJWT = QueryResult.createJWT(serviceCtx, createProps);
+    let validated = QueryResult.validateJWT(serviceCtx, queryResultJWT);
+
+    assert(!validated.err, util.format('Canon Query Result JWT is not valid?:%j', validated));
+
+    return queryResultJWT;
+
+  }
 }
 
 module.exports = QueryResult;
