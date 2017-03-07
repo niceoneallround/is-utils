@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*
 
 This message is a JWT sent from the Ingest Privacy Agent to the Identity Syndicate.

@@ -1,4 +1,4 @@
-/*jslint node: true, vars: true */
+/*jslint node: true */
 /*
   The RSAQuery is sent from the RSPA to RSA as the body of the response to the
   POST apply inbound message request.

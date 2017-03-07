@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*
 
 The public query is sent to the query agent from some party

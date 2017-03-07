@@ -1,4 +1,4 @@
-
+/*jslint node: true */
 /*
 
  This message is sent from the Reference Source Privacy Agent to the Reference Source Proxy

@@ -1,3 +1,4 @@
+/*jslint node: true */
 /*
 
 This message is a JWT sent from the Reference Source Proxy to the Reference Source Privacy Agent

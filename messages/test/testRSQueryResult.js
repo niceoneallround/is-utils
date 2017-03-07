@@ -13,7 +13,7 @@ const PN_T = PNDataModel.TYPE;
 const testUtils = require('node-utils/testing-utils/lib/utils');
 const should = require('should');
 
-describe('1 Test Validate', function () {
+describe('1 Test RS Query Result', function () {
   'use strict';
 
   const pnDataModelId = 'pn_data_model_id_1';

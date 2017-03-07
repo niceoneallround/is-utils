@@ -1,4 +1,4 @@
-/*jslint node: true, vars: true */
+/*jslint node: true */
 /*
 
 This file contains values that need to be shared across the canons so that
