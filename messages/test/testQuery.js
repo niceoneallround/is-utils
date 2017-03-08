@@ -38,7 +38,7 @@ describe('1 Test Query', function () {
     let node = mess[PN_P.queryNodes][0];
     node.should.have.property('@id');
     node.should.have.property('@type', [PN_T.QueryNode]);
-    node.should.have.property(PN_P.queryResultGraphNode, 'bob');
+    node.should.have.property(PN_P.queryResultGraphProp, 'bob');
 
     node.should.have.property(PN_P.params);
     node[PN_P.params].should.have.property('@id');

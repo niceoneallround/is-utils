@@ -99,7 +99,7 @@ class Query {
       let keyData = publicQry.graph[keys[i]];
 
       let node = JSONLDUtils.createBlankNode({ '@type': PN_T.QueryNode, });
-      node[PN_P.queryResultGraphNode] = keys[i];
+      node[PN_P.queryResultGraphProp] = keys[i];
 
       // create the query restriction based on the params for now hard coded to
       // just use the id
