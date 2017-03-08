@@ -1,7 +1,7 @@
 /*jslint node: true, vars: true */
 /*
 
-   Process the set of passed in subjects and syndicated entities to produce concrete
+   Process the set of passed in set syndicated entities and thier backing subjects to produce concrete
    PN Data Model subject data. Note the syndicated entities contain only the @id of the
    backing subject.
 
@@ -38,12 +38,22 @@ class promisePNDataModelEntity {
         .then(
           function (flattenedSubjects) {
 
+            // The backing subjects are flattened, which creates an array of all the
+            // subjects and any embedded objects, such as address. This is used to
+            // create a map so can lookup as created the output entity from the syndicated
+            // entity. This is done as the syndicated entity just has @id pointers to the
+            // actual data in the backing subjects.
+            //
+            // Note this will also merge any duplicate @id information into a single object
+            //
+
             let nodeMap = new Map();
             for (let i = 0; i < flattenedSubjects['@graph'].length; i++) {
               nodeMap.set(flattenedSubjects['@graph'][i]['@id'], flattenedSubjects['@graph'][i]);
             }
 
-            // if the ses are not already Syndicated Entities then create
+            // if the ses are not already Syndicated Entities then create - sometimes just JSON
+            // is passed across the wire so need to make into a class.
             let syndEnts = ses;
             if (!(ses[0] instanceof SyndicatedEntity)) {
               syndEnts = [];
@@ -52,6 +62,8 @@ class promisePNDataModelEntity {
               }
             }
 
+            // iterate across the SEs creating the output subjects that may include properties from more
+            // than one backing subject @id for that subject.
             let data = [];
             for (let i = 0; i < syndEnts.length; i++) {
               data.push(syndEnts[i].pnDataModelEntity(type, pnDataModelId, nodeMap, flattenedSubjects['@graph']));
