@@ -110,7 +110,7 @@ class QueryResult {
       } catch (err) {
         result.error = PNDataModel.errors.createInvalidJWTError({
                   id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-                  type: PN_T.SubjectSyndicationRequest, jwtError: err, });
+                  type: PN_T.SubjectQueryresult, jwtError: err, });
 
         serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
                                     action: 'SubjectQueryResult-ERROR-JWT-VERIFY',
