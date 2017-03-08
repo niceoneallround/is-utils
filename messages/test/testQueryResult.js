@@ -45,10 +45,14 @@ describe('1 Test Query Result', function () {
   it('1.1 should return a query result JWT from create that is valid', function () {
     let queryResultJWT = QueryResult.createJWT(dummyServiceCtx, createProps);
     let validated = QueryResult.validateJWT(dummyServiceCtx, queryResultJWT);
+    console.log(validated);
     validated.should.not.have.property('error');
     validated.should.have.property('decoded');
     validated.should.have.property('subjectJWTs');
     validated.should.have.property('decodedSubjectJWTs');
+    validated.decodedSubjectJWTs.length.should.be.equal(1);
+    validated.should.have.property('subjects');
+    validated.subjects.length.should.be.equal(1);
   }); // 1.1
 
   it('1.2 should return a ack JWT from a valid message', function () {

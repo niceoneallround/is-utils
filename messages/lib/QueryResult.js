@@ -121,6 +121,8 @@ class QueryResult {
 
         return result;
       }
+    } else {
+      result.decoded = JWTUtils.decoce(inputJWT);
     }
 
     if (!result.decoded) {
@@ -164,15 +166,6 @@ class QueryResult {
       return result;
     }
 
-    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) { // holds result
-      result.error = PNDataModel.errors.createTypeError({
-        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_CLAIM, result.decoded),
-      });
-
-      return result;
-    }
-
     // validate privacy pipe claim
     if (!result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM]) {
       result.error = PNDataModel.errors.createTypeError({
@@ -185,23 +178,34 @@ class QueryResult {
       result.privacyPipeId = result.decoded[JWTClaims.PRIVACY_PIPE_CLAIM];
     }
 
+    if (!result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM]) { // holds result
+      result.error = PNDataModel.errors.createTypeError({
+        id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
+        errMsg: util.format('ERROR no %s claim in JWT:%j', JWTClaims.SUBJECT_CLAIM, result.decoded),
+      });
+
+      return result;
+    }
+
     //
     // verify the subject JWTS
     //
     result.subjectJWTs = result.decoded[JWTClaims.SUBJECT_JWTS_CLAIM];
     result.decodedSubjectJWTs = [];
-    if (serviceCtx.config.VERIFY_JWT) {
-      for (let i = 0; i < result.subjectJWTs.length; i++) {
+    result.subjects = [];
+    let decodedSubjectJWT;
+    for (let i = 0; i < result.subjectJWTs.length; i++) {
+      if (serviceCtx.config.VERIFY_JWT) {
         try {
-          result.decodedSubjectJWTs.push(JWTUtils.newVerify(result.subjectJWTs[i], serviceCtx.config.crypto.jwt));
+          decodedSubjectJWT = JWTUtils.newVerify(result.subjectJWTs[i], serviceCtx.config.crypto.jwt);
         } catch (err) {
 
           result.badRequest = PNDataModel.errors.createInvalidJWTError({
                     id: PNDataModel.ids.createErrorId(hostname, moment().unix()),
-                    type: PN_T.RSSubjectQueryResult, jwtError: err, });
+                    type: PN_T.SubjectQueryResult, jwtError: err, });
 
           serviceCtx.logger.logJSON('error', { serviceType: serviceCtx.name,
-                                      action: 'RsQuery-Result-ERROR-JWT-VERIFY-OF-SUBJECT_JWTs',
+                                      action: 'Query-Result-ERROR-JWT-VERIFY-OF-SUBJECT_JWTs',
                                       query: result.query['@id'],
                                       inputJWT: inputJWT,
                                       error: result.subjectJWTs[i],
@@ -210,7 +214,12 @@ class QueryResult {
 
           return result;
         }
+      } else {
+        decodedSubjectJWT = JWTUtils.decode(result.subjectJWTs[i]);
       }
+
+      result.decodedSubjectJWTs.push(decodedSubjectJWT);
+      result.subjects.push(decodedSubjectJWT[JWTClaims.SUBJECT_CLAIM]);
     }
 
     return result;
