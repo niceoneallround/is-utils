@@ -89,8 +89,10 @@ class QueryResult {
 
       { error: the jwt was somehow invalid so send a bad request to caller,
         decoded: the decoded query result JWT,
+        decodedSubjectJWTs: array of decoded subject JWTs
         queryResult: the query result node,
         subjects: array of subjects
+        subjectJWTs: array of the subject JWTs
         privacyPipeId: the pipe id
       }
   */

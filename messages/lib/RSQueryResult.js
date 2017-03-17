@@ -50,7 +50,8 @@ class RSQueryResult {
 
       { error: the jwt was somehow invalid so send a bad request to caller,
         decoded: the decoded payload
-        subjects: an array of decoded payload subject JWTs
+        decodedSubjectJWTs: an array of decoded payload subject JWTs
+        subjectJWTs: an array of subject JWTs
         links: an array of decoded payload link JWTs
         query: the query  }
   */
@@ -342,6 +343,7 @@ class RSQueryResult {
     // used for sub systems tests only encrypt taxID for now add the rest later - this is taken from the
     // rspa log so valid.
     let alice = TestReferenceSourcePNDataModel.canons.createAlice({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    alice['@type'].push('http://pn.schema.webshield.io/type#PrivacyGraph'); // mark as a privacy graph
     alice['https://schema.org/taxID'] = {
       '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/rs#rspa-paction1488493433-1',
       '@value': '3AtEhwBZxE858c15..lvmfA2gx7Ea1B6c5k1JL0YnKxgue5hAhj47gL64=',
@@ -355,6 +357,7 @@ class RSQueryResult {
     // used for sub systems tests only encrypt taxID for now add the rest later - this is taken from the
     // rspa log so valid.
     let bob = TestReferenceSourcePNDataModel.canons.createBob({ domainName: serviceCtx.config.DOMAIN_NAME, });
+    bob['@type'].push('http://pn.schema.webshield.io/type#PrivacyGraph'); // mark as a privacy graph
     bob['https://schema.org/taxID'] = {
       '@type': 'https://md.pn.id.webshield.io/paction_instance/io/webshield/test/rs#rspa-paction1488493433-1',
       '@value': 'TOI6mjg/63U8cyLt../Mw19A2Oo7atBxJr+6gFDCGRo/FBHVCyipiu',
